@@ -5,6 +5,7 @@ import type { Task } from "~/lib/types";
 import { TaskComments } from "./task-comments";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { AssigneeMenu } from "./assignee-menu";
+import { StatusMenu } from "./status-menu";
 import { useFetcher } from "@remix-run/react";
 
 // TODO: on hover the status bar should show who created the task and when
@@ -16,33 +17,40 @@ interface Props {
 
 export function TodoItem({ task, onTaskUpdate }: Props) {
 	const [opened, setOpened] = React.useState(false);
-	const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+	const [isAssigneePopoverOpen, setIsAssigneePopoverOpen] =
+		React.useState(false);
+	const [isStatusPopoverOpen, setIsStatusPopoverOpen] = React.useState(false);
+
 	const fetcher = useFetcher();
 
-	const optimisticAssignee =
-		fetcher.formData?.get("assignee")?.toString() || task.assignee;
-
 	React.useEffect(() => {
-		if (fetcher.state === "idle" && fetcher.data?.task) {
+		if (fetcher.data?.task) {
 			onTaskUpdate?.(fetcher.data.task);
 		}
-	}, [fetcher.state, fetcher.data, onTaskUpdate]);
+	}, [fetcher.data, onTaskUpdate]);
 
-	function assignTask(taskId: number, assignee: string) {
-		fetcher.submit(JSON.stringify({ taskId, assignee }), {
+	function updateTask(
+		taskId: number,
+		updates: { assignee?: string; status?: string },
+	) {
+		fetcher.submit(JSON.stringify({ taskId, ...updates }), {
 			method: "PATCH",
 			action: "/list",
 			encType: "application/json",
 		});
 
-		setIsPopoverOpen(false);
+		if (updates.assignee) {
+			setIsAssigneePopoverOpen(false);
+			return;
+		}
+		setIsStatusPopoverOpen(false);
 	}
 
-	const handleToggleOpen = (e: React.MouseEvent | React.KeyboardEvent) => {
-		// Prevent toggle when clicking assignee button
-		if (
+	const handleToggleOpen = (e: React.MouseEvent | React.KeyboardEvent) => {		if (
 			e.target instanceof HTMLElement &&
-			e.target.closest("[data-assignee-button]")
+			(e.target.closest("[data-assignee-button]") ||
+				e.target.closest("[data-status-button]") ||
+				e.target.closest(".popover-content"))
 		) {
 			return;
 		}
@@ -62,18 +70,48 @@ export function TodoItem({ task, onTaskUpdate }: Props) {
 				// biome-ignore lint/a11y/noNoninteractiveTabindex: <explanation>
 				tabIndex={0}
 			>
-				<div
-					className={clsx(
-						"size-6 rounded-full border-2 border-stone-300 dark:border-neutral-700 flex items-center justify-center",
-						{
-							"!border-amber-500": task.status === "inProgress",
-						},
-					)}
+				<Popover
+					open={isStatusPopoverOpen}
+					onOpenChange={setIsStatusPopoverOpen}
+					placement="bottom-start"
 				>
-					{task.status === "done" && (
-						<div className="i-lucide-check opacity-50" />
-					)}
-				</div>
+					<PopoverTrigger asChild>
+						<button
+							data-status-button
+							type="button"
+							className={clsx(
+								"size-6 rounded-full border-2 border-stone-300 dark:border-neutral-700 flex items-center justify-center",
+								{
+									"!border-amber-500": task.status === "inProgress",
+									"!border-green-500": task.status === "done",
+								},
+							)}
+							onClick={(e) => {
+								e.stopPropagation();
+								setIsStatusPopoverOpen(!isStatusPopoverOpen);
+							}}
+							onKeyDown={(e) => {
+								e.stopPropagation();
+								if (e.key === "Enter" || e.key === " ") {
+									e.preventDefault();
+									setIsStatusPopoverOpen(!isStatusPopoverOpen);
+								}
+							}}
+						>
+							{task.status === "done" && (
+								<div className="i-lucide-check opacity-50" />
+							)}
+						</button>
+					</PopoverTrigger>
+					<PopoverContent className="z-50 popover-content">
+						<StatusMenu
+							status={task.status}
+							onStatusSelect={(newStatus) =>
+								updateTask(task.id, { status: newStatus })
+							}
+						/>
+					</PopoverContent>
+				</Popover>
 
 				<div className="flex-1">
 					<div className="flex items-center justify-between">
@@ -90,44 +128,41 @@ export function TodoItem({ task, onTaskUpdate }: Props) {
 
 				<div className="flex gap-3 items-center">
 					<Popover
-						open={isPopoverOpen}
-						onOpenChange={setIsPopoverOpen}
+						open={isAssigneePopoverOpen}
+						onOpenChange={setIsAssigneePopoverOpen}
 						placement="bottom-end"
 					>
 						<PopoverTrigger asChild>
-							<div
+							<button
 								data-assignee-button
+								type="button"
+								className="flex items-center gap-1 bg-transparent text-sm font-mono text-secondary"
 								onClick={(e) => {
 									e.stopPropagation();
-									setIsPopoverOpen(!isPopoverOpen);
+									setIsAssigneePopoverOpen(!isAssigneePopoverOpen);
 								}}
 								onKeyDown={(e) => {
 									e.stopPropagation();
 									if (e.key === "Enter" || e.key === " ") {
 										e.preventDefault();
-										setIsPopoverOpen(!isPopoverOpen);
+										setIsAssigneePopoverOpen(!isAssigneePopoverOpen);
 									}
 								}}
 							>
-								<button
-									type="button"
-									className="flex items-center gap-1 bg-transparent text-sm font-mono text-secondary"
-								>
-									<img
-										src={`https://api.dicebear.com/9.x/dylan/svg?seed=${optimisticAssignee}`}
-										className="rounded-full size-5 bg-blue-500"
-										alt={optimisticAssignee}
-									/>{" "}
-									@{optimisticAssignee}
-								</button>
-							</div>
+								<img
+									src={`https://api.dicebear.com/9.x/dylan/svg?seed=${task.assignee}`}
+									className="rounded-full size-5 bg-blue-500"
+									alt={task.assignee}
+								/>{" "}
+								@{task.assignee}
+							</button>
 						</PopoverTrigger>
 
-						<PopoverContent className="z-50">
+						<PopoverContent className="z-50 popover-content">
 							<AssigneeMenu
-								assignee={optimisticAssignee}
+								assignee={task.assignee}
 								onTeamMemberSelect={(newAssignee) =>
-									assignTask(task.id, newAssignee)
+									updateTask(task.id, { assignee: newAssignee })
 								}
 							/>
 						</PopoverContent>

@@ -39,14 +39,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request }: ActionFunctionArgs) => {
 	if (request.method === "PATCH") {
-		const { taskId: id, assignee } = await request.json();
+		const { taskId: id, ...updates } = await request.json();
 
 		const task = await prisma.task.update({
 			where: {
 				id,
 			},
 			data: {
-				assignee,
+				...updates,
 			},
 		});
 
