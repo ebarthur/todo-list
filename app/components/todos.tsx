@@ -12,11 +12,31 @@ async function load(previous: Task[][]) {
 }
 
 export function Todos() {
-	const { results, isLoading } = usePaginatedResults(load);
+	const { results } = usePaginatedResults(load);
 	const [newEntries, setNewEntries] = React.useState<Task[]>([]);
+	const [localResults, setLocalResults] = React.useState<Task[][]>(results);
+
+	React.useEffect(() => {
+		setLocalResults(results);
+	}, [results]);
 
 	const handleNewEntry = React.useCallback((task: Task) => {
 		setNewEntries((prev) => [task, ...prev]);
+	}, []);
+
+	const handleTaskUpdate = React.useCallback((updatedTask: Task) => {
+		setNewEntries((prev) =>
+			prev.map((task) =>
+				task.id === updatedTask.id ? { ...task, ...updatedTask } : task,
+			),
+		);
+		setLocalResults((prev) =>
+			prev.map((page) =>
+				page.map((task) =>
+					task.id === updatedTask.id ? { ...task, ...updatedTask } : task,
+				),
+			),
+		);
 	}, []);
 
 	return (
@@ -26,9 +46,9 @@ export function Todos() {
 					<TaskComposer onNewEntry={handleNewEntry} />
 				</li>
 
-				{[...newEntries, ...results.flat()].map((task) => (
+				{[...newEntries, ...localResults.flat()].map((task) => (
 					<li key={task.id}>
-						<TodoItem task={task} />
+						<TodoItem task={task} onTaskUpdate={handleTaskUpdate} />
 					</li>
 				))}
 			</ul>
