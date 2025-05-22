@@ -46,7 +46,8 @@ export function TodoItem({ task, onTaskUpdate }: Props) {
 		setIsStatusPopoverOpen(false);
 	}
 
-	const handleToggleOpen = (e: React.MouseEvent | React.KeyboardEvent) => {		if (
+	const handleToggleOpen = (e: React.MouseEvent | React.KeyboardEvent) => {
+		if (
 			e.target instanceof HTMLElement &&
 			(e.target.closest("[data-assignee-button]") ||
 				e.target.closest("[data-status-button]") ||

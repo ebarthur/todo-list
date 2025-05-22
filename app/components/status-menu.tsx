@@ -1,3 +1,4 @@
+import type { Status } from "@prisma/client";
 import clsx from "clsx";
 
 interface StatusMenuProps {
@@ -6,27 +7,23 @@ interface StatusMenuProps {
 }
 
 interface StatusProps {
-	id: string;
-	name: string;
+	name: Status;
 	label: string;
 	icon: string;
 }
 
 const statuses: StatusProps[] = [
 	{
-		id: "status-pending",
 		name: "pending",
 		label: "Pending",
 		icon: "i-lucide-circle text-secondary",
 	},
 	{
-		id: "status-inProgress",
 		name: "inProgress",
 		label: "In Progress",
 		icon: "i-lucide-loader-circle text-amber",
 	},
 	{
-		id: "status-done",
 		name: "done",
 		label: "Done",
 		icon: "i-solar-check-circle-outline text-green-500",
@@ -47,7 +44,7 @@ export function StatusMenu({ onStatusSelect, status }: StatusMenuProps) {
 			<ul className="space-y-1 p-1">
 				{statuses.map((s) => (
 					<li
-						key={s.id}
+						key={s.name}
 						className={clsx(
 							"flex items-center pl-3 rounded-lg  hover:bg-neutral-200/80 dark:hover:bg-neutral-800/20",
 							{
