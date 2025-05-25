@@ -17,7 +17,7 @@ function InviteCard({ setShowInvite }: InviteCardProps) {
 			fetcher.load("/invite");
 			fetched.current = true;
 		}
-	}, [fetcher.state]);
+	}, [fetcher.state, fetcher.load]);
 
 	const inviteLink = fetcher.data?.url || "Loading...";
 
