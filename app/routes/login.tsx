@@ -152,7 +152,7 @@ export default function Login() {
 						{userCreated === 0
 							? "This is a first-time setup. Create a super user account."
 							: signupAllowed
-								? "Enter a username and password to sign up."
+								? "Enter a username and password to create your account."
 								: "Enter your username and password to log in."}
 					</p>
 					{actionData?.detail && (
@@ -191,8 +191,12 @@ export default function Login() {
 						</div>
 
 						<Button type="submit">
-							{signupAllowed ? "Sign Up" : "Login"}{" "}
-							<div className="i-lucide-crown" />
+							{signupAllowed ? "Sign Up" : "Login"}
+							{userCreated === 0 ? (
+								<div className="i-lucide-crown ml-1" />
+							) : signupAllowed ? (
+								<div className="i-lucide-corner-down-left ml-1" />
+							) : null}
 						</Button>
 					</form>
 				</div>
