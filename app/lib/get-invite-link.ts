@@ -1,9 +1,10 @@
+import { addHours } from "date-fns";
 import { nanoid } from "nanoid";
 import { prisma } from "./prisma.server";
 
 export async function getInviteLink() {
 	const token = nanoid(24);
-	const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 12); // 12 hours
+	const expiresAt = addHours(new Date(), 12);
 
 	await prisma.inviteToken.create({
 		data: {

@@ -1,4 +1,4 @@
-import { differenceInDays, differenceInHours, format } from "date-fns";
+import { differenceInDays, differenceInHours, format, isSameDay } from "date-fns";
 
 export function age(date: Date) {
 	const now = new Date();
@@ -14,9 +14,9 @@ export function age(date: Date) {
 
 export function authorTime(date: Date | string) {
 	const now = new Date();
-	const hoursDiff = differenceInHours(now, date);
+	const isToday = isSameDay(now, date);
 
-	if (hoursDiff < 24) {
+	if (isToday) {
 		return format(date, "hh.mma").toLocaleLowerCase();
 	}
 
