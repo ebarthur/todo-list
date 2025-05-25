@@ -4,10 +4,10 @@ import { CopyButton } from "./copy-button";
 import { Input } from "./input";
 
 type InviteCardProps = {
-	setShowInvite: React.Dispatch<React.SetStateAction<boolean>>;
+	onClose: () => void;
 };
 
-function InviteCard({ setShowInvite }: InviteCardProps) {
+function InviteCard({ onClose }: InviteCardProps) {
 	const fetcher = useFetcher();
 
 	const fetched = React.useRef(false);
@@ -29,7 +29,7 @@ function InviteCard({ setShowInvite }: InviteCardProps) {
 					<button
 						type="button"
 						className="bg-transparent cursor-pointer"
-						onClick={() => setShowInvite(false)}
+						onClick={onClose}
 					>
 						<div className="i-lucide-x size-5" />
 					</button>

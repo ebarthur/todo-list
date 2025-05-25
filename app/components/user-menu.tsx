@@ -75,7 +75,7 @@ function UserMenu() {
 					</ul>
 				</>
 			) : (
-				<InviteCard setShowInvite={setShowInvite} />
+				<InviteCard onClose={() => setShowInvite(false)} />
 			)}
 		</div>
 	);
