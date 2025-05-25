@@ -76,6 +76,7 @@ enum NotificationType {
   comment
   assignment
   generic
+  new_member
 }
 
 model InviteToken {

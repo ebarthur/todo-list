@@ -70,16 +70,18 @@ export async function action({ request }: ActionFunctionArgs) {
 			if (!valid) {
 				return badRequest({ detail: "Invalid or expired invite token" });
 			}
-
-			await prisma.inviteToken.update({
-				where: { token: valid.token },
-				data: { used: true, usedAt: new Date() },
-			});
 		}
 
 		const existingUser = await prisma.user.findUnique({ where: { username } });
 		if (existingUser) {
 			return badRequest({ detail: "Username already taken" });
+		}
+
+		if (invite) {
+			await prisma.inviteToken.update({
+				where: { token: invite },
+				data: { used: true, usedAt: new Date() },
+			});
 		}
 
 		const hashedPassword = await argon2.hash(password);
@@ -90,6 +92,26 @@ export async function action({ request }: ActionFunctionArgs) {
 				superUser: userCreated === 0,
 			},
 		});
+
+		if (userCreated > 0) {
+			const allUsers = await prisma.user.findMany({
+				select: { id: true },
+			});
+
+			await prisma.notification.createMany({
+				data: allUsers
+					.filter((u) => u.id !== user.id)
+					.map((u) => ({
+						message: `New member @[user/${user.id}] (${username}) has joined`,
+						userId: u.id,
+						type: "new_member",
+						meta: {
+							newUserId: user.id,
+							username,
+						},
+					})),
+			});
+		}
 
 		return redirect("/", {
 			headers: {
