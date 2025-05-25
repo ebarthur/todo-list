@@ -1,4 +1,5 @@
 import argon2 from "argon2";
+import clsx from "clsx";
 import { type FieldValues, useForm } from "react-hook-form";
 import {
 	type ActionFunctionArgs,
@@ -102,7 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
 				data: allUsers
 					.filter((u) => u.id !== user.id)
 					.map((u) => ({
-						message: `New member @[user/${user.id}] (${username}) has joined`,
+						message: `New member @[user/${user.id}] has joined`,
 						userId: u.id,
 						type: "new_member",
 						meta: {
@@ -189,7 +190,7 @@ export default function Login() {
 
 						<div className="relative">
 							<Input
-								type="password"
+								type={userCreated === 0 || signupAllowed ? "text" : "password"}
 								placeholder="password"
 								className="font-mono pr-8"
 								{...register("password", {
@@ -203,22 +204,23 @@ export default function Login() {
 							{(userCreated === 0 || signupAllowed) && (
 								<span
 									className={`
-                    absolute right-2 top-1/2 -translate-y-1/2
-                    w-2 h-2 rounded-full
-                    ${$password >= 8 ? "bg-green-600" : "dark:bg-neutral-700 bg-neutral-400"}
-                  `}
+					absolute right-2 top-1/2 -translate-y-1/2
+					w-2 h-2 rounded-full
+					${$password >= 8 ? "bg-green-600" : "dark:bg-neutral-700 bg-neutral-400"}
+					`}
 									aria-hidden="true"
 								/>
 							)}
 						</div>
 
-						<Button type="submit">
+						<Button className="gap-1" type="submit">
 							{signupAllowed ? "Sign Up" : "Login"}
-							{userCreated === 0 ? (
-								<div className="i-lucide-crown ml-1" />
-							) : signupAllowed ? (
-								<div className="i-lucide-corner-down-left ml-1" />
-							) : null}
+							<div
+								className={clsx({
+									"i-lucide-crown": userCreated === 0,
+									"i-lucide-corner-down-left": signupAllowed,
+								})}
+							/>
 						</Button>
 					</form>
 				</div>
