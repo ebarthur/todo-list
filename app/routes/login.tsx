@@ -1,11 +1,13 @@
 import argon2 from "argon2";
 import { type FieldValues, useForm } from "react-hook-form";
 import {
-    type ActionFunctionArgs,
-    type LoaderFunctionArgs,
-    type MetaFunction,
-    redirect,
-    useActionData, useLoaderData, useSubmit,
+	type ActionFunctionArgs,
+	type LoaderFunctionArgs,
+	type MetaFunction,
+	redirect,
+	useActionData,
+	useLoaderData,
+	useSubmit,
 } from "react-router";
 import { Button } from "~/components/button";
 import { Input } from "~/components/input";
@@ -20,24 +22,72 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 		return redirect("/");
 	} catch (_) {
+		const url = new URL(request.url);
+		const invite = url.searchParams.get("invite");
 		const userCreated = await prisma.user.count();
 
-		return { userCreated };
+		let signupAllowed = false;
+
+		if (userCreated === 0) {
+			signupAllowed = true;
+		} else if (invite) {
+			const valid = await prisma.inviteToken.findFirst({
+				where: {
+					token: invite,
+					used: false,
+					expiresAt: { gt: new Date() },
+				},
+			});
+			if (valid) signupAllowed = true;
+		}
+
+		return { userCreated, signupAllowed, invite };
 	}
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+	const url = new URL(request.url);
+	const invite = url.searchParams.get("invite");
 	const formData = await request.json();
 	const { username, password } = formData;
 
+	if (!username || !password) {
+		return badRequest({ detail: "Username and password are required" });
+	}
+
 	const userCreated = await prisma.user.count();
-	if (userCreated === 0) {
+
+	if (userCreated === 0 || invite) {
+		if (invite) {
+			const valid = await prisma.inviteToken.findFirst({
+				where: {
+					token: invite,
+					used: false,
+					expiresAt: { gt: new Date() },
+				},
+			});
+
+			if (!valid) {
+				return badRequest({ detail: "Invalid or expired invite token" });
+			}
+
+			await prisma.inviteToken.update({
+				where: { token: valid.token },
+				data: { used: true, usedAt: new Date() },
+			});
+		}
+
+		const existingUser = await prisma.user.findUnique({ where: { username } });
+		if (existingUser) {
+			return badRequest({ detail: "Username already taken" });
+		}
+
 		const hashedPassword = await argon2.hash(password);
 		const user = await prisma.user.create({
 			data: {
 				username,
 				password: hashedPassword,
-				superUser: true,
+				superUser: userCreated === 0,
 			},
 		});
 
@@ -48,11 +98,9 @@ export async function action({ request }: ActionFunctionArgs) {
 		});
 	}
 
-	const user = await prisma.user.findUnique({
-		where: { username },
-	});
+	const user = await prisma.user.findUnique({ where: { username } });
 	if (!user) {
-		return badRequest({ detail: "User not found" });
+		return badRequest({ detail: "Incorrect username or password" });
 	}
 
 	const isPasswordValid = await argon2.verify(user.password, password);
@@ -72,7 +120,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Login() {
-	const { userCreated } = useLoaderData<typeof loader>();
+	const { userCreated, signupAllowed, invite } = useLoaderData<typeof loader>();
 	const actionData = useActionData<typeof action>();
 	const { register, handleSubmit, watch, reset } = useForm();
 	const submit = useSubmit();
@@ -80,10 +128,11 @@ export default function Login() {
 	const $password = watch("password")?.length || 0;
 
 	function onSubmit(data: FieldValues) {
+		const actionUrl = invite ? `/login?invite=${invite}` : "/login";
 		submit(JSON.stringify(data), {
 			method: "POST",
 			encType: "application/json",
-			action: "/login",
+			action: actionUrl,
 		});
 		reset();
 	}
@@ -92,13 +141,19 @@ export default function Login() {
 		<div className="flex h-screen w-screen items-center justify-center">
 			<div className="w-74 rounded-lg border border-gray-200 bg-stone-50 dark:(bg-neutral-900 border-neutral-800) shadow-lg -mt-10rem">
 				<div className="p-4">
-					<h1 className=" font-medium">
-						{userCreated ? "Login" : "Super User"}
+					<h1 className="font-medium">
+						{userCreated === 0
+							? "Create Super User"
+							: signupAllowed
+								? "Sign Up"
+								: "Login"}
 					</h1>
 					<p className="text-sm text-gray-500 mb-2">
-						{userCreated
-							? "Enter your username and password to continue."
-							: "This is a first-time login. Set username and password."}
+						{userCreated === 0
+							? "This is a first-time setup. Create a super user account."
+							: signupAllowed
+								? "Enter a username and password to sign up."
+								: "Enter your username and password to log in."}
 					</p>
 					{actionData?.detail && (
 						<p className="text-sm text-rose-500 mb-2">{actionData.detail}</p>
@@ -112,7 +167,7 @@ export default function Login() {
 
 						<div className="relative">
 							<Input
-								type={userCreated ? "password" : "text"}
+								type="password"
 								placeholder="password"
 								className="font-mono pr-8"
 								{...register("password", {
@@ -123,20 +178,21 @@ export default function Login() {
 									},
 								})}
 							/>
-							{!userCreated && (
+							{(userCreated === 0 || signupAllowed) && (
 								<span
 									className={`
-								absolute right-2 top-1/2 -translate-y-1/2
-								w-2 h-2 rounded-full
-								${$password >= 8 ? "bg-green-600" : "dark:bg-neutral-700 bg-neutral-400"}
-							`}
+                    absolute right-2 top-1/2 -translate-y-1/2
+                    w-2 h-2 rounded-full
+                    ${$password >= 8 ? "bg-green-600" : "dark:bg-neutral-700 bg-neutral-400"}
+                  `}
 									aria-hidden="true"
 								/>
 							)}
 						</div>
 
 						<Button type="submit">
-							Enter <div className="i-lucide-crown" />
+							{signupAllowed ? "Sign Up" : "Login"}{" "}
+							<div className="i-lucide-crown" />
 						</Button>
 					</form>
 				</div>
