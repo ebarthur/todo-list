@@ -1,4 +1,4 @@
-import type { Status } from "@prisma/client";
+import type { Prisma, Status } from "@prisma/client";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { checkAuth } from "~/lib/check-auth";
 import { cleanUpdate } from "~/lib/clean-update";
@@ -14,29 +14,32 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const assigneeId = searchParams.get("assigneeId") || undefined;
 	const status = searchParams.get("status") || undefined;
 
-	let search = searchParams.get("search") || "";
+	const search = searchParams.get("search") || "";
 
-	let taskIdSearch: number | undefined = undefined;
+	const where: Prisma.TaskWhereInput = { OR: [] };
+
+	where.OR!.push({
+		title: {
+			contains: search,
+			mode: "insensitive",
+		},
+	});
 
 	const match = search.match(TASK_ID_REGEX);
 	if (match) {
-		taskIdSearch = Number(match[1]);
-		search = "";
+		where.OR!.push({ id: Number(match[1]) });
+	}
+
+	if (assigneeId) {
+		where.assigneeId = Number(assigneeId);
+	}
+
+	if (status) {
+		where.status = status as Status;
 	}
 
 	const tasks = await prisma.task.findMany({
-		where: {
-			...(taskIdSearch
-				? { id: taskIdSearch }
-				: {
-						title: {
-							contains: search,
-							mode: "insensitive",
-						},
-					}),
-			...(assigneeId && { assigneeId: Number(assigneeId) }),
-			...(status && { status: status as Status }),
-		},
+		where,
 		orderBy: {
 			createdAt: "desc",
 		},
