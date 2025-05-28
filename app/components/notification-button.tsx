@@ -100,7 +100,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
 						className={clsx({
 							"i-solar-hand-shake-line-duotone text-secondary":
 								notification.type === "new_member",
-							"i-lucide-at-sign": notification.type === "mention",
+							"i-lucide-at-sign text-secondary": notification.type === "mention",
 							"i-solar-user-hands-line-duotone text-secondary":
 								notification.type === "assignment",
 						})}

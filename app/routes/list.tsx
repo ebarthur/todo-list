@@ -1,7 +1,8 @@
-import type { Status } from "@prisma/client";
+import type { Prisma, Status } from "@prisma/client";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { checkAuth } from "~/lib/check-auth";
 import { cleanUpdate } from "~/lib/clean-update";
+import { TASK_ID_REGEX } from "~/lib/constants";
 import { prisma } from "~/lib/prisma.server";
 import { badRequest, notFound } from "~/lib/responses";
 import { sendDiscordWebhook } from "~/lib/send-discord";
@@ -11,19 +12,35 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const searchParams = url.searchParams;
 
 	const page = Number(searchParams.get("page")) || 0;
-	const search = searchParams.get("search") || "";
 	const assigneeId = searchParams.get("assigneeId") || undefined;
 	const status = searchParams.get("status") || undefined;
 
-	const tasks = await prisma.task.findMany({
-		where: {
-			title: {
-				contains: search,
-				mode: "insensitive",
-			},
-			...(assigneeId && { assigneeId: Number(assigneeId) }),
-			...(status && { status: status as Status }),
+	const search = searchParams.get("search") || "";
+
+	const where: Prisma.TaskWhereInput = { OR: [] };
+
+	where.OR!.push({
+		title: {
+			contains: search,
+			mode: "insensitive",
 		},
+	});
+
+	const match = search.match(TASK_ID_REGEX);
+	if (match) {
+		where.OR!.push({ id: Number(match[1]) });
+	}
+
+	if (assigneeId) {
+		where.assigneeId = Number(assigneeId);
+	}
+
+	if (status) {
+		where.status = status as Status;
+	}
+
+	const tasks = await prisma.task.findMany({
+		where,
 		orderBy: {
 			createdAt: "desc",
 		},
