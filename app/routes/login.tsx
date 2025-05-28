@@ -16,6 +16,7 @@ import { checkAuth } from "~/lib/check-auth";
 import { authCookie } from "~/lib/cookies.server";
 import { prisma } from "~/lib/prisma.server";
 import { badRequest } from "~/lib/responses";
+import { sendDiscordWebhook } from "~/lib/send-discord";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	try {
@@ -111,6 +112,13 @@ export async function action({ request }: ActionFunctionArgs) {
 							username,
 						},
 					})),
+			});
+
+			sendDiscordWebhook("user.joined", {
+				user: {
+					id: user.id,
+					username,
+				},
 			});
 		}
 

@@ -4,6 +4,7 @@ import { checkAuth } from "~/lib/check-auth";
 import { cleanUpdate } from "~/lib/clean-update";
 import { prisma } from "~/lib/prisma.server";
 import { badRequest, notFound } from "~/lib/responses";
+import { sendDiscordWebhook } from "~/lib/send-discord";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const url = new URL(request.url);
@@ -46,54 +47,86 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request }: ActionFunctionArgs) => {
 	const user = await checkAuth(request);
+
 	if (request.method === "DELETE") {
 		const { taskId: id } = await request.json();
 
 		if (!id) throw badRequest({ error: "taskId is required" });
 
-		return await prisma.task.delete({
-			where: {
-				id,
-			},
+		const taskToDelete = await prisma.task.findUnique({
+			where: { id },
+			include: { assignee: true },
 		});
+
+		const result = await prisma.task.delete({
+			where: { id },
+		});
+
+		if (taskToDelete) {
+			sendDiscordWebhook("task.deleted", {
+				task: taskToDelete,
+				user,
+			});
+		}
+
+		return result;
 	}
 
 	if (request.method === "PATCH") {
 		const { id, updates } = cleanUpdate(await request.json());
 
-		let previousAssigneeId = 0;
-		if (updates.assigneeId) {
-			const previous = await prisma.task.findUnique({
-				where: { id },
-				select: { assigneeId: true },
-			});
+		const previous = await prisma.task.findUnique({
+			where: { id },
+			include: { assignee: true },
+		});
 
-			if (!previous) throw notFound();
+		if (!previous) throw notFound();
 
-			previousAssigneeId = previous?.assigneeId;
-		}
+		const previousAssigneeId = previous.assigneeId;
+		const previousStatus = previous.status;
 
 		const task = await prisma.task.update({
 			where: { id },
 			data: updates,
+			include: { assignee: true },
 		});
 
-		if (
-			updates.assigneeId &&
-			previousAssigneeId !== updates.assigneeId &&
-			updates.assigneeId !== user.id // don't notify self
-		) {
-			await prisma.notification.create({
-				data: {
-					message: `You have been assigned to task @[task/${id}] by @[user/${user.id}]`,
-					userId: task.assigneeId,
-					type: "assignment",
-					meta: {
-						taskId: id,
-						previousAssigneeId,
-						newAssigneeId: updates.assigneeId,
+		if (updates.status && previousStatus !== updates.status) {
+			sendDiscordWebhook("task.status_changed", {
+				task,
+				user,
+				previousStatus,
+			});
+		}
+
+		if (updates.assigneeId && previousAssigneeId !== updates.assigneeId) {
+			if (updates.assigneeId !== user.id) {
+				// don't notify self
+				await prisma.notification.create({
+					data: {
+						message: `You have been assigned to task @[task/${id}] by @[user/${user.id}]`,
+						userId: task.assigneeId,
+						type: "assignment",
+						meta: {
+							taskId: id,
+							previousAssigneeId,
+							newAssigneeId: updates.assigneeId,
+						},
 					},
-				},
+				});
+			}
+
+			sendDiscordWebhook("task.assigned", {
+				task,
+				user,
+			});
+		}
+
+		if (updates.title && previous.title !== updates.title) {
+			sendDiscordWebhook("task.updated", {
+				task,
+				user,
+				updatedFields: ["title"],
 			});
 		}
 
@@ -103,7 +136,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	if (request.method === "POST") {
 		const data = await request.json();
 
-		const task = await prisma.task.create({ data });
+		const task = await prisma.task.create({
+			data,
+			include: {
+				assignee: true,
+			},
+		});
+
+		sendDiscordWebhook("task.created", {
+			task,
+			user:
+				(await prisma.user.findUnique({ where: { id: data.authorId } })) ||
+				undefined,
+		});
 
 		return { task };
 	}
