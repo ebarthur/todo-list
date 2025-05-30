@@ -3,7 +3,7 @@ import { type CreateMentionOpts, createMentions } from "~/lib/mentions.server";
 import { prisma } from "~/lib/prisma.server";
 import { render } from "~/lib/render.server";
 import { badRequest } from "~/lib/responses";
-import { sendDiscordWebhook } from "~/lib/send-discord";
+import { triggerWebhook } from "~/lib/webhook";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url);
@@ -98,7 +98,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	});
 
 	if (task) {
-		sendDiscordWebhook("comment.created", {
+		triggerWebhook("comment.created", {
 			task,
 			user: comment.author,
 			comment: comment.content,
