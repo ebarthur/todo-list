@@ -1,4 +1,5 @@
 import type { Status, Task, User } from "@prisma/client";
+import type { EventType } from "./webhook-types";
 
 interface DiscordWebhookPayload {
 	content?: string;
@@ -29,16 +30,7 @@ interface DiscordEmbed {
 	timestamp?: string;
 }
 
-export type EventType =
-	| "task.created"
-	| "task.updated"
-	| "task.deleted"
-	| "task.status_changed"
-	| "task.assigned"
-	| "comment.created"
-	| "user.joined";
-
-export async function sendDiscordWebhook(
+export async function sendDiscord(
 	eventType: EventType,
 	data: {
 		task?: Task & { assignee?: User };
@@ -47,17 +39,18 @@ export async function sendDiscordWebhook(
 		comment?: string;
 		updatedFields?: string[];
 	},
+	webhookUrl?: string,
 ): Promise<boolean> {
-	const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+	const url = webhookUrl || process.env.DISCORD_WEBHOOK_URL;
 
-	if (!webhookUrl) {
+	if (!url) {
 		return false;
 	}
 
 	try {
 		const payload = createWebhookPayload(eventType, data);
 
-		const response = await fetch(webhookUrl, {
+		const response = await fetch(url, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -65,11 +58,7 @@ export async function sendDiscordWebhook(
 			body: JSON.stringify(payload),
 		});
 
-		if (!response.ok) {
-			return false;
-		}
-
-		return true;
+		return response.ok;
 	} catch (e) {
 		return false;
 	}

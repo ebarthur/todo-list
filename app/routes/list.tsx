@@ -5,7 +5,7 @@ import { cleanUpdate } from "~/lib/clean-update";
 import { TASK_ID_REGEX } from "~/lib/constants";
 import { prisma } from "~/lib/prisma.server";
 import { badRequest, notFound } from "~/lib/responses";
-import { sendDiscordWebhook } from "~/lib/send-discord";
+import { triggerWebhook } from "~/lib/webhook";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const url = new URL(request.url);
@@ -80,7 +80,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		});
 
 		if (taskToDelete) {
-			sendDiscordWebhook("task.deleted", {
+			triggerWebhook("task.deleted", {
 				task: taskToDelete,
 				user,
 			});
@@ -109,7 +109,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		});
 
 		if (updates.status && previousStatus !== updates.status) {
-			sendDiscordWebhook("task.status_changed", {
+			triggerWebhook("task.status_changed", {
 				task,
 				user,
 				previousStatus,
@@ -133,14 +133,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 				});
 			}
 
-			sendDiscordWebhook("task.assigned", {
+			triggerWebhook("task.assigned", {
 				task,
 				user,
 			});
 		}
 
 		if (updates.title && previous.title !== updates.title) {
-			sendDiscordWebhook("task.updated", {
+			triggerWebhook("task.updated", {
 				task,
 				user,
 				updatedFields: ["title"],
@@ -160,7 +160,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 			},
 		});
 
-		sendDiscordWebhook("task.created", {
+		triggerWebhook("task.created", {
 			task,
 			user:
 				(await prisma.user.findUnique({ where: { id: data.authorId } })) ||
