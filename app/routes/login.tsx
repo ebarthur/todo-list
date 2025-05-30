@@ -13,6 +13,7 @@ import {
 import { Button } from "~/components/button";
 import { Input } from "~/components/input";
 import { checkAuth } from "~/lib/check-auth";
+import { USERNAME_REGEX } from "~/lib/constants";
 import { authCookie } from "~/lib/cookies.server";
 import { prisma } from "~/lib/prisma.server";
 import { badRequest } from "~/lib/responses";
@@ -150,6 +151,10 @@ export default function Login() {
 
 	const $password = watch("password")?.length || 0;
 
+	const $username = watch("username") || "";
+
+	const isUsernameValid = USERNAME_REGEX.test($username);
+
 	function onSubmit(data: FieldValues) {
 		const actionUrl = invite ? `/login?invite=${invite}` : "/login";
 
@@ -182,11 +187,26 @@ export default function Login() {
 						<p className="text-sm text-rose-500 mb-2">{actionData.detail}</p>
 					)}
 					<form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-						<Input
-							placeholder="username"
-							className="font-mono"
-							{...register("username", { required: true })}
-						/>
+						<div className="relative">
+							<Input
+								maxLength={14}
+								placeholder="username"
+								className="font-mono pr-8"
+								{...register("username", {
+									required: true,
+									pattern: USERNAME_REGEX,
+								})}
+							/>
+							{(userCreated === 0 || signupAllowed) && $username && (
+								<span
+									className={clsx(
+										"absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full animate-fade-in animate-duration-200 ",
+										isUsernameValid ? "bg-green-600" : "bg-red-600",
+									)}
+									aria-hidden="true"
+								/>
+							)}
+						</div>
 
 						<div className="relative">
 							<Input
