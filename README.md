@@ -2,7 +2,7 @@
 
 ![Screenshot](./assets/screenshot.jpg)
 
-For small teams, todo list helps you get things done. Simple!
+For small teams, Todo List helps you get things done. Simple!
 
 You can immediately deploy your version with the button below:
 
@@ -23,114 +23,91 @@ DATABASE_URL="postgresql://postgres@127.0.0.1:5432/todolist"
 COOKIE_SECRET="somerandomstring"
 ```
 
-## Webhook Integrations
+## Webhook Integration
 
-Todo List supports webhook integrations to notify external services about events that occur in the application. Currently, Discord integration is available.
+Todo List provides a flexible webhook system that allows you to send event notifications to any service or integration.
 
-### Configuration
+### How It Works
 
-For Discord webhooks, you can use a simple configuration in `.env` with:
+1. When events occur in the app (like task creation, updates, etc.), the `sendWebhook` function is called
+2. This function sends a typed event payload to the URL specified in the `WEBHOOK_URL` environment variable
+3. You can configure this URL to point to:
+   - An external service (like Slack, a custom API, etc.)
+   - Our built-in `/webhook/discord` endpoint to use our Discord integration
+   - Your own custom integration
+
+### Configuration Options
+
+There are two main ways to set up the webhook system:
+
+#### Option 1: Use our built-in Discord integration
 
 ```bash
-DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/your/webhook/url"
+# Point to our internal webhook endpoint
+WEBHOOK_URL="http://localhost:5173/webhook/discord"
+
+# Your Discord webhook URL
+DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/your-discord-webhook-url"
 ```
 
-Or for more advanced configuration with multiple webhooks and event filtering:
+With this setup, events from the app are sent to our `/webhook/discord` endpoint, which formats them and forwards them to Discord.
+
+#### Option 2: Send directly to your own endpoint
 
 ```bash
-WEBHOOKS='[
-  {
-    "type": "discord",
-    "url": "https://discord.com/api/webhooks/your/webhook/url",
-    "enabled": true,
-    "events": ["task.created", "task.status_changed", "comment.created"]
-  }
-]'
+# Point directly to your external service
+WEBHOOK_URL="https://your-custom-webhook-receiver.com/endpoint"
 ```
 
-### Supported Event Types
+With this setup, events are sent directly to your specified endpoint, and you're responsible for handling and processing them.
 
-- `task.created`: When a new task is created
-- `task.updated`: When a task's details are updated
-- `task.status_changed`: When a task's status changes
-- `task.assigned`: When a task is assigned to someone
-- `task.deleted`: When a task is deleted
-- `comment.created`: When a comment is added to a task
-- `user.joined`: When a new user joins
+### Event Types
 
-### Creating Custom Webhook Integrations
+Todo List sends strongly-typed JSON events for various actions in the system such as:
 
-You can extend Todo List with your own webhook integrations by following these steps:
+- Task creation
+- Task updates
+- Status changes
+- Task assignments
+- Task deletions
+- User joins
 
-1. Create a new integration file in `/app/lib/` (e.g., `slack.ts`). You can check `discord.ts` for an example:
+Each event includes the relevant data needed to process the event, including task information and user details.
+
+### Discord Integration
+
+Our built-in Discord integration formats events into rich embeds with:
+
+- Color-coding based on event type
+- User avatars
+- Formatted task information
+- Timestamps
+- Direct links back to tasks
+
+### Creating Your Own Integration
+
+You can create your own integration in two ways:
+
+1. **External service**: Set `WEBHOOK_URL` to your external service and process the events there
+2. **Internal integration**: Create a new route in the app, set `WEBHOOK_URL` to point to it, and implement your processing logic
+
+Example of a custom integration route:
 
 ```typescript
-// Example Slack integration
-import type { EventType, WebhookConfig, WebhookEventData, WebhookIntegration } from "./webhook-types";
-
-const slackWebhook: WebhookIntegration = {
-  name: "Slack",
+// Example: app/routes/webhook.my-integration.tsx
+export async function action({ request }: ActionFunctionArgs) {
+  if (request.method !== "POST") throw methodNotAllowed();
   
-  async send(
-    eventType: EventType,
-    data: WebhookEventData,
-    config: WebhookConfig
-  ): Promise<boolean> {
-    // Format and send data to Slack
-    const payload = createSlackPayload(eventType, data);
-    
-    try {
-      const response = await fetch(config.url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      
-      return response.ok;
-    } catch (error) {
-      console.error("Slack webhook error:", error);
-      return false;
-    }
-  }
-};
-
-function createSlackPayload(eventType: EventType, data: WebhookEventData) {
-  // Transform the event data into a Slack-compatible format
-  // ...
+  // Get the webhook payload
+  const event = await request.json();
+  
+  // Process the event and send to your service
+  // ...your custom logic here...
+  
+  return json({ success: true });
 }
-
-export { slackWebhook };
 ```
 
-2. Register your integration in `webhook.ts`:
+Then set `WEBHOOK_URL="http://localhost:5173/webhook/my-integration"` in your environment.
 
-```typescript
-import { discordWebhook } from "./discord";
-import { slackWebhook } from "./slack";  // Import your integration
-import type { EventType, WebhookEventData } from "./webhook-types";
-
-// Registry of available webhook integrations
-const webhookIntegrations = {
-  discord: discordWebhook,
-  slack: slackWebhook,  // Add your integration here
-  // Other integrations go here
-};
-
-// ...rest of the file
-```
-
-3. Use the integration in your configuration:
-
-```bash
-WEBHOOKS='[
-  {
-    "type": "slack",
-    "url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
-    "enabled": true,
-    "events": ["task.created", "user.joined"]
-  }
-]'
-```
-
-Your custom webhook will now be triggered for the specified events.
 

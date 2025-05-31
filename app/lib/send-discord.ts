@@ -1,5 +1,5 @@
-import type { Status, Task, User } from "@prisma/client";
-import type { EventType } from "./webhook-types";
+import type { Task } from "@prisma/client";
+import type { AnyWebhookEvent, EventType, WebhookEvent } from "./webhook-types";
 
 interface DiscordWebhookPayload {
 	content?: string;
@@ -31,25 +31,11 @@ interface DiscordEmbed {
 }
 
 export async function sendDiscord(
-	eventType: EventType,
-	data: {
-		task?: Task & { assignee?: User };
-		user?: User;
-		previousStatus?: Status;
-		comment?: string;
-		updatedFields?: string[];
-	},
-	webhookUrl?: string,
+	event: AnyWebhookEvent,
+	url: string,
 ): Promise<boolean> {
-	const url = webhookUrl || process.env.DISCORD_WEBHOOK_URL;
-
-	if (!url) {
-		return false;
-	}
-
 	try {
-		const payload = createWebhookPayload(eventType, data);
-
+		const payload = createWebhookPayload(event);
 		const response = await fetch(url, {
 			method: "POST",
 			headers: {
@@ -64,35 +50,26 @@ export async function sendDiscord(
 	}
 }
 
-function createWebhookPayload(
-	eventType: EventType,
-	data: {
-		task?: Task & { assignee?: User };
-		user?: User;
-		previousStatus?: Status;
-		comment?: string;
-		updatedFields?: string[];
-	},
-): DiscordWebhookPayload {
-	const { task, user, previousStatus, comment, updatedFields } = data;
-	const appName = process.env.APP_NAME || "Todo List";
-	const baseUrl = process.env.BASE_URL || "";
+function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
+	const appName = "Todo List";
+	const baseUrl = process.env.BASE_URL!;
 
 	const payload: DiscordWebhookPayload = {
-		username: `${appName} Bot`,
+		username: "Takeshi Kovacs",
 		avatar_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(appName)}`,
 	};
 
 	const embed: DiscordEmbed = {
-		color: getColorForEvent(eventType),
+		color: getColorForEvent(event.type),
 		timestamp: new Date().toISOString(),
 		footer: {
-			text: `${appName} by @_yogr`,
+			text: `${appName} by @_yogr 🇬🇭`,
 		},
 	};
 
-	switch (eventType) {
-		case "task.created":
+	switch (event.type) {
+		case "task.created": {
+			const { task, user } = event as WebhookEvent<"task.created">;
 			if (!task) break;
 
 			embed.title = "📣 New Task Created";
@@ -125,8 +102,11 @@ function createWebhookPayload(
 				};
 			}
 			break;
+		}
 
-		case "task.updated":
+		case "task.updated": {
+			const { task, user, updatedFields } =
+				event as WebhookEvent<"task.updated">;
 			if (!task || !updatedFields) break;
 
 			embed.title = "✏️ Task Updated";
@@ -148,8 +128,11 @@ function createWebhookPayload(
 				};
 			}
 			break;
+		}
 
-		case "task.status_changed":
+		case "task.status_changed": {
+			const { task, user, previousStatus } =
+				event as WebhookEvent<"task.status_changed">;
 			if (!task || !previousStatus) break;
 
 			embed.title = "💡 Task Status Changed";
@@ -182,8 +165,10 @@ function createWebhookPayload(
 				};
 			}
 			break;
+		}
 
-		case "task.assigned":
+		case "task.assigned": {
+			const { task, user } = event as WebhookEvent<"task.assigned">;
 			if (!task) break;
 
 			embed.title = "🖇️ Task Assigned";
@@ -209,8 +194,10 @@ function createWebhookPayload(
 				};
 			}
 			break;
+		}
 
-		case "task.deleted":
+		case "task.deleted": {
+			const { task, user } = event as WebhookEvent<"task.deleted">;
 			if (!task) break;
 
 			embed.title = "🗑️ Task Deleted";
@@ -223,8 +210,10 @@ function createWebhookPayload(
 				};
 			}
 			break;
+		}
 
-		case "comment.created":
+		case "comment.created": {
+			const { task, user, comment } = event as WebhookEvent<"comment.created">;
 			if (!task || !comment) break;
 
 			embed.title = "💬 New Comment";
@@ -250,8 +239,10 @@ function createWebhookPayload(
 				};
 			}
 			break;
+		}
 
-		case "user.joined":
+		case "user.joined": {
+			const { user } = event as WebhookEvent<"user.joined">;
 			if (!user) break;
 
 			embed.title = "👋🏾 New User Joined";
@@ -262,6 +253,7 @@ function createWebhookPayload(
 				icon_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(user.username)}`,
 			};
 			break;
+		}
 	}
 
 	payload.embeds = [embed];
@@ -295,8 +287,8 @@ function formatFieldName(field: string): string {
 		.replace(/^./, (str) => str.toUpperCase());
 }
 
-function formatFieldValue(field: string, task: any): string {
-	const value = task[field];
+function formatFieldValue(field: string, task: Task): string {
+	const value = task[field as keyof Task];
 
 	if (value === null || value === undefined) {
 		return "None";

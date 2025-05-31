@@ -1,5 +1,7 @@
 import type { Status, Task, User } from "@prisma/client";
 
+export type SafeUser = Omit<User, "password">;
+
 export type EventType =
 	| "task.created"
 	| "task.updated"
@@ -9,27 +11,49 @@ export type EventType =
 	| "comment.created"
 	| "user.joined";
 
-export interface WebhookEventData {
-	task?: Task & { assignee?: User };
-	user?: User;
-	previousStatus?: Status;
-	comment?: string;
-	updatedFields?: string[];
-}
+export type WebhookPayload = {
+	"task.created": {
+		task: Task & { assignee?: SafeUser };
+		user?: SafeUser;
+	};
 
-export interface WebhookConfig {
-	enabled: boolean;
-	url: string;
-	events?: EventType[];
-	// Add any platform-specific configuration here
-	[key: string]: any;
-}
+	"task.updated": {
+		task: Task & { assignee?: SafeUser };
+		user?: SafeUser;
+		updatedFields: string[];
+	};
 
-export interface WebhookIntegration {
-	name: string;
-	send: (
-		eventType: EventType,
-		data: WebhookEventData,
-		config: WebhookConfig,
-	) => Promise<boolean>;
-}
+	"task.deleted": {
+		task: Task & { assignee?: SafeUser };
+		user?: SafeUser;
+	};
+
+	"task.status_changed": {
+		task: Task & { assignee?: SafeUser };
+		user?: SafeUser;
+		previousStatus: Status;
+	};
+
+	"task.assigned": {
+		task: Task & { assignee?: SafeUser };
+		user?: SafeUser;
+	};
+
+	"comment.created": {
+		task: Task & { assignee?: SafeUser };
+		user?: SafeUser;
+		comment: string;
+	};
+
+	"user.joined": {
+		user: SafeUser;
+	};
+};
+
+export type WebhookEvent<T extends EventType> = {
+	type: T;
+} & WebhookPayload[T];
+
+export type AnyWebhookEvent = {
+	[K in EventType]: WebhookEvent<K>;
+}[EventType];

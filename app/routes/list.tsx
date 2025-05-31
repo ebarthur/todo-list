@@ -5,7 +5,7 @@ import { cleanUpdate } from "~/lib/clean-update";
 import { TASK_ID_REGEX } from "~/lib/constants";
 import { prisma } from "~/lib/prisma.server";
 import { badRequest, notFound } from "~/lib/responses";
-import { triggerWebhook } from "~/lib/webhook";
+import { sendWebhook } from "~/lib/webhook";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const url = new URL(request.url);
@@ -80,7 +80,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		});
 
 		if (taskToDelete) {
-			triggerWebhook("task.deleted", {
+			sendWebhook("task.deleted", {
 				task: taskToDelete,
 				user,
 			});
@@ -104,12 +104,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 		const task = await prisma.task.update({
 			where: { id },
-			data: updates,
-			include: { assignee: true },
+			data: {
+				...updates,
+				completedAt: updates.status === "done" ? new Date() : null,
+			},
+			include: {
+				assignee: {
+					omit: {
+						password: true,
+					},
+				},
+			},
 		});
 
 		if (updates.status && previousStatus !== updates.status) {
-			triggerWebhook("task.status_changed", {
+			sendWebhook("task.status_changed", {
 				task,
 				user,
 				previousStatus,
@@ -133,14 +142,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 				});
 			}
 
-			triggerWebhook("task.assigned", {
+			sendWebhook("task.assigned", {
 				task,
 				user,
 			});
 		}
 
 		if (updates.title && previous.title !== updates.title) {
-			triggerWebhook("task.updated", {
+			sendWebhook("task.updated", {
 				task,
 				user,
 				updatedFields: ["title"],
@@ -156,15 +165,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		const task = await prisma.task.create({
 			data,
 			include: {
-				assignee: true,
+				assignee: {
+					omit: {
+						password: true,
+					},
+				},
 			},
 		});
 
-		triggerWebhook("task.created", {
+		const taskAuthor = await prisma.user.findUnique({
+			where: { id: data.authorId },
+		});
+
+		sendWebhook("task.created", {
 			task,
-			user:
-				(await prisma.user.findUnique({ where: { id: data.authorId } })) ||
-				undefined,
+			user: taskAuthor || undefined,
 		});
 
 		return { task };
