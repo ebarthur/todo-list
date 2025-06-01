@@ -52,7 +52,7 @@ export async function sendDiscord(
 
 function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 	const appName = "Todo List";
-	const baseUrl = process.env.BASE_URL!;
+	const baseUrl = process.env.BASE_URL || process.env.VERCEL_URL;
 	const botName = process.env.DISCORD_BOT_NAME || "kovacs";
 
 	const payload: DiscordWebhookPayload = {
@@ -63,9 +63,6 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 	const embed: DiscordEmbed = {
 		color: getColorForEvent(event.type),
 		timestamp: new Date().toISOString(),
-		footer: {
-			text: `${appName} by @_yogr 🇬🇭`,
-		},
 	};
 
 	switch (event.type) {

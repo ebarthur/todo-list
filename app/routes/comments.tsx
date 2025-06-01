@@ -74,7 +74,11 @@ export async function action({ request }: ActionFunctionArgs) {
 	const comment = await prisma.comment.create({
 		data,
 		include: {
-			author: true,
+			author: {
+				omit: {
+					password: true
+				}
+			},
 		},
 	});
 

@@ -72,7 +72,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 		const taskToDelete = await prisma.task.findUnique({
 			where: { id },
-			include: { assignee: true },
+			include: {
+				assignee: {
+					omit: {
+						password: true,
+					},
+				},
+			},
 		});
 
 		const result = await prisma.task.delete({
@@ -94,7 +100,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 		const previous = await prisma.task.findUnique({
 			where: { id },
-			include: { assignee: true },
+			select: {
+				assigneeId: true,
+				status: true,
+				title: true,
+			},
 		});
 
 		if (!previous) throw notFound();
@@ -175,6 +185,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 		const taskAuthor = await prisma.user.findUnique({
 			where: { id: data.authorId },
+			omit: {
+				password: true,
+			},
 		});
 
 		sendWebhook("task.created", {
