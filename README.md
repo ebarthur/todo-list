@@ -21,93 +21,34 @@ Postgres is the database. Run `yarn prisma studio` to open the Prisma studio and
 ```bash
 DATABASE_URL="postgresql://postgres@127.0.0.1:5432/todolist"
 COOKIE_SECRET="somerandomstring"
+WEBHOOK_URL= # optional
+DISCORD_WEBHOOK_URL= # optional, see Webhook section
+DISCORD_BOT_NAME= # optional, defaults to "kovacs"
 ```
 
 ## Webhook Integration
 
-Todo List provides a flexible webhook system that allows you to send event notifications to any service or integration.
+Todo List provides a webhook system that sends event notifications when specific actions occur in the app. If a `WEBHOOK_URL` is provided, the endpoint is called with the following events:
 
-### How It Works
-
-1. When events occur in the app (like task creation, updates, etc.), the `sendWebhook` function is called
-2. This function sends a typed event payload to the URL specified in the `WEBHOOK_URL` environment variable
-3. You can configure this URL to point to:
-   - An external service (like Slack, a custom API, etc.)
-   - Our built-in `/webhook/discord` endpoint to use our Discord integration
-   - Your own custom integration
-
-### Configuration Options
-
-There are two main ways to set up the webhook system:
-
-#### Option 1: Use our built-in Discord integration
-
-```bash
-# Point to our internal webhook endpoint
-WEBHOOK_URL="http://localhost:5173/webhook/discord"
-
-# Your Discord webhook URL
-DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/your-discord-webhook-url"
-```
-
-With this setup, events from the app are sent to our `/webhook/discord` endpoint, which formats them and forwards them to Discord.
-
-#### Option 2: Send directly to your own endpoint
-
-```bash
-# Point directly to your external service
-WEBHOOK_URL="https://your-custom-webhook-receiver.com/endpoint"
-```
-
-With this setup, events are sent directly to your specified endpoint, and you're responsible for handling and processing them.
-
-### Event Types
-
-Todo List sends strongly-typed JSON events for various actions in the system such as:
-
-- Task creation
-- Task updates
-- Status changes
-- Task assignments
-- Task deletions
-- User joins
-
-Each event includes the relevant data needed to process the event, including task information and user details.
+| Event Name | Description | 
+|------------|-------------|
+| `task.created` | Triggered when a new task is created |
+| `task.updated` | Triggered when a task is updated |
+| `task.deleted` | Triggered when a task is deleted |
+| `task.status_changed` | Triggered when a task's status changes |
+| `task.assigned` | Triggered when a task is assigned to a user |
+| `comment.created` | Triggered when a comment is added to a task |
+| `user.joined` | Triggered when a new user joins the system |
 
 ### Discord Integration
 
-Our built-in Discord integration formats events into rich embeds with:
+Todo List implements webhook integration for Discord messaging for these events.
 
-- Color-coding based on event type
-- User avatars
-- Formatted task information
-- Timestamps
-- Direct links back to tasks
+To set up Discord notifications:
 
-### Creating Your Own Integration
+1. Provide a `DISCORD_WEBHOOK_URL` that contains a valid Discord webhook endpoint. See [Discord's Webhook Guide](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) on how to create this endpoint in your server.
+2. Set `WEBHOOK_URL` to `https://<your-todolist-domain>/webhook/discord`
 
-You can create your own integration in two ways:
-
-1. **External service**: Set `WEBHOOK_URL` to your external service and process the events there
-2. **Internal integration**: Create a new route in the app, set `WEBHOOK_URL` to point to it, and implement your processing logic
-
-Example of a custom integration route:
-
-```typescript
-// Example: app/routes/webhook.my-integration.tsx
-export async function action({ request }: ActionFunctionArgs) {
-  if (request.method !== "POST") throw methodNotAllowed();
-  
-  // Get the webhook payload
-  const event = await request.json();
-  
-  // Process the event and send to your service
-  // ...your custom logic here...
-  
-  return json({ success: true });
-}
-```
-
-Then set `WEBHOOK_URL="http://localhost:5173/webhook/my-integration"` in your environment.
+Voila, your discord server will start receiving events.
 
 

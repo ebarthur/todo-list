@@ -53,10 +53,11 @@ export async function sendDiscord(
 function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 	const appName = "Todo List";
 	const baseUrl = process.env.BASE_URL!;
+	const botName = process.env.DISCORD_BOT_NAME || "kovacs";
 
 	const payload: DiscordWebhookPayload = {
-		username: "Takeshi Kovacs",
-		avatar_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(appName)}`,
+		username: botName,
+		avatar_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(botName)}`,
 	};
 
 	const embed: DiscordEmbed = {
