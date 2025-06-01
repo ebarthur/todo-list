@@ -21,7 +21,7 @@ Postgres is the database. Run `yarn prisma studio` to open the Prisma studio and
 ```bash
 DATABASE_URL="postgresql://postgres@127.0.0.1:5432/todolist"
 COOKIE_SECRET="somerandomstring"
-BASE_URL= # Used for webhook links (falls back to VERCEL_URL which is set on Vercel environments)
+BASE_URL= # falls back to VERCEL_URL which is set on Vercel environments
 WEBHOOK_URL= # optional
 DISCORD_WEBHOOK_URL= # optional, see Webhook section
 DISCORD_BOT_NAME= # optional, defaults to "kovacs"
@@ -31,7 +31,7 @@ DISCORD_BOT_NAME= # optional, defaults to "kovacs"
 
 If a `WEBHOOK_URL` is provided, the endpoint is called with the following events:
 
-| Event Name | Description | 
+| Event Name | Description |
 |------------|-------------|
 | `task.created` | Triggered when a new task is created |
 | `task.updated` | Triggered when a task is updated |
