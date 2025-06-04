@@ -5,7 +5,7 @@ import { useLoaderData } from "react-router";
 import type { loader } from "~/routes/_index";
 
 export function ProjectButton() {
-	const { project_id } = useLoaderData<typeof loader>();
+	const { project_id, user } = useLoaderData<typeof loader>();
 	const { query } = useProject();
 	const { data: projects } = query;
 
@@ -33,16 +33,20 @@ export function ProjectButton() {
 						<ProjectItem project={project} key={project.id} />
 					))}
 				</div>
-				<div className="w-full p-2 ">
-					<a
-						href="/project/new"
-						className="flex items-center gap-1 p-1 w-full rounded-md bg-neutral-2 hover:bg-neutral-3 dark:bg-neutral-800 dark:hover:bg-neutral-7"
-						type="button"
-					>
-						<div className="i-lucide-plus size-5" />
-						Add new project
-					</a>
-				</div>
+				{user.superUser ? (
+					<div className="w-full p-2 ">
+						<a
+							href="/project/new"
+							className="flex items-center gap-1 p-1 w-full rounded-md bg-neutral-2 hover:bg-neutral-3 dark:bg-neutral-800 dark:hover:bg-neutral-7"
+							type="button"
+						>
+							<div className="i-lucide-plus size-5" />
+							Add new project
+						</a>
+					</div>
+				) : (
+					<></>
+				)}
 			</PopoverContent>
 		</Popover>
 	);
