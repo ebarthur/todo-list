@@ -13,12 +13,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Project {
+  id       Int    @id @default(autoincrement())
+  name     String
+  slug     String @unique
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Task   Task[]
+  Access Access[]
+}
+
+model Access {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId Int
+  createdAt DateTime @default(now())
+}
+
+
 model Task {
   id          Int       @id @default(autoincrement())
   title       String
   status      Status    @default(pending)
   author      User      @relation("author", fields: [authorId], references: [id])
   assignee    User      @relation("assignee", fields: [assigneeId], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id])
+  projectId   Int
+  dueDate     DateTime?
   completedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -58,6 +85,8 @@ model User {
   Tasks        Task[]         @relation("author")
   Assignments  Task[]         @relation("assignee")
   Notification Notification[]
+  Project      Project[]
+  Access       Access[]
 }
 
 model Notification {
