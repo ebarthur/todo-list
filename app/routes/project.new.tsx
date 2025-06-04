@@ -41,7 +41,7 @@ interface IFormInput {
 	slug: string;
 }
 
-export default function NewPorject() {
+export default function NewProject() {
 	const { user, project } = useLoaderData<typeof loader>();
 	const { create, update } = useProject();
 
@@ -65,7 +65,6 @@ export default function NewPorject() {
 			create.mutate(
 				{
 					name: data.name,
-					authorId: user.id,
 					slug: data.slug,
 				},
 				{ onSuccess: () => navigate(`/?slug=${data.slug}`) },
