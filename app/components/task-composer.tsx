@@ -5,6 +5,7 @@ import type { loader } from "~/routes/_index";
 
 export function TaskComposer() {
 	const { user } = useLoaderData<typeof loader>();
+	const { project_id } = useLoaderData<typeof loader>();
 
 	const formRef = React.useRef<HTMLFormElement>(null);
 	const inputRef = React.useRef<HTMLInputElement>(null);
@@ -19,9 +20,10 @@ export function TaskComposer() {
 		const title = formData.get("title") as string;
 
 		if (!title.trim()) return;
+		if (project_id === null || project_id === undefined) return;
 
 		create.mutate(
-			{ title: title.trim(), assigneeId: user.id, authorId: user.id },
+			{ title: title.trim(), assigneeId: user.id, authorId: user.id , projectId: project_id },
 			{
 				onSuccess: () => {
 					formRef.current?.reset();
@@ -51,7 +53,7 @@ export function TaskComposer() {
 					placeholder="What needs done?"
 					name="title"
 					className="flex-1 font-medium bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0"
-					disabled={create.isPending}
+					disabled={create.isPending || project_id === null }
 					ref={inputRef}
 				/>
 
