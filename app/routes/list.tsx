@@ -16,6 +16,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const status = searchParams.get("status") || undefined;
 
 	const search = searchParams.get("search") || "";
+	const project = searchParams.get("project") || undefined;
 
 	const where: Prisma.TaskWhereInput = { OR: [] };
 
@@ -37,6 +38,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 	if (status) {
 		where.status = status as Status;
+	}
+
+	if (project) {
+		where.Project = { slug: project };
 	}
 
 	const tasks = await prisma.task.findMany({

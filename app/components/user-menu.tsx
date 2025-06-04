@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import React from "react";
 import { Link, useLoaderData, useNavigate } from "react-router";
-import type { loader } from "~/routes/_index";
+import type { loader } from "~/routes/$project";
 import { InviteCard } from "./invite-card";
 
 function UserMenu() {
@@ -19,11 +19,8 @@ function UserMenu() {
 	return (
 		<div
 			className={clsx(
-				"transition-[width,min-width] duration-300 ease-in-out will-change-width bg-neutral-100 dark:bg-neutral-900 rounded-lg border border-neutral-300 dark:border-neutral-800 overflow-hidden shadow-lg mt-1.5",
-				{
-					"min-w-14rem w-14rem": !showInvite,
-					"min-w-17.8rem w-17.8rem": showInvite,
-				},
+				"transition-width duration-300 ease-in-out will-change-width bg-stone-100 dark:bg-neutral-900 rounded-lg border border-neutral-300 dark:border-neutral-800 overflow-hidden shadow-lg mt-1.5 animate-fade-in animate-duration-200",
+				{ "w-14rem": !showInvite, "w-17.8rem": showInvite },
 			)}
 		>
 			{!showInvite ? (
@@ -48,7 +45,7 @@ function UserMenu() {
 									onClick={() => setShowInvite(true)}
 									className="bg-transparent w-full flex gap-2 items-center py-1.5 px-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg"
 								>
-									<div className="i-solar-users-group-rounded-linear" />
+									<div className="i-solar-users-group-rounded-linear opacity-50" />
 									Invite a Teammate
 								</button>
 							</li>
@@ -58,7 +55,7 @@ function UserMenu() {
 								to="/change-password"
 								className="w-full flex gap-2 items-center py-1.5 px-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg"
 							>
-								<div className="i-solar-lock-password-linear" />
+								<div className="i-solar-lock-password-linear opacity-50" />
 								Change Password
 							</Link>
 						</li>

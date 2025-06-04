@@ -1,11 +1,10 @@
 import React from "react";
 import { useLoaderData, useRevalidator } from "react-router";
 import { useTasks } from "~/lib/use-tasks";
-import type { loader } from "~/routes/_index";
+import type { loader } from "~/routes/$project";
 
 export function TaskComposer() {
-	const { user } = useLoaderData<typeof loader>();
-	const { project_id } = useLoaderData<typeof loader>();
+	const { user, project } = useLoaderData<typeof loader>();
 
 	const formRef = React.useRef<HTMLFormElement>(null);
 	const inputRef = React.useRef<HTMLInputElement>(null);
@@ -20,14 +19,13 @@ export function TaskComposer() {
 		const title = formData.get("title") as string;
 
 		if (!title.trim()) return;
-		if (project_id === null || project_id === undefined) return;
 
 		create.mutate(
 			{
 				title: title.trim(),
 				assigneeId: user.id,
 				authorId: user.id,
-				projectId: project_id,
+				projectId: project.id,
 			},
 			{
 				onSuccess: () => {
@@ -58,7 +56,7 @@ export function TaskComposer() {
 					placeholder="What needs done?"
 					name="title"
 					className="flex-1 font-medium bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0"
-					disabled={create.isPending || project_id === null}
+					disabled={create.isPending}
 					ref={inputRef}
 				/>
 

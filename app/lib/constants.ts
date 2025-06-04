@@ -3,4 +3,4 @@ export const TASK_MENTION_REGEX = /@\[task\/(\d+)\]/g;
 export const TAG_REGEX = /@(\w+)/g;
 export const TASK_ID_REGEX = /^#(\d+)$/;
 export const USERNAME_REGEX = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){2,13}$/i;
-export const SLUG_REGEX = /^[a-z0-9_-]+$/;
+export const SLUG_REGEX = USERNAME_REGEX;

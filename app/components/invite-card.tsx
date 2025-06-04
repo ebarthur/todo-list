@@ -1,5 +1,5 @@
 import React from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useParams } from "react-router";
 import { CopyButton } from "./copy-button";
 import { Input } from "./input";
 
@@ -11,13 +11,14 @@ function InviteCard({ onClose }: InviteCardProps) {
 	const fetcher = useFetcher();
 
 	const fetched = React.useRef(false);
+	const { project } = useParams();
 
 	React.useEffect(() => {
 		if (!fetched.current && fetcher.state === "idle") {
-			fetcher.load("/invite");
+			fetcher.load(`/invite?project=${project}`);
 			fetched.current = true;
 		}
-	}, [fetcher.state, fetcher.load]);
+	}, [fetcher.state, fetcher.load, project]);
 
 	const token = fetcher.data?.token;
 	const inviteLink = token ? `${window.location.origin}/invite/${token}` : "";
@@ -47,13 +48,15 @@ function InviteCard({ onClose }: InviteCardProps) {
 						text={inviteLink}
 						disabled={fetcher.state !== "idle" || !token}
 					/>
-					<span className="text-secondary font-mono ms-1 text-.65rem">
-						Single-use link, expires in 12hrs
-					</span>
+					<div className="h-1rem overflow-hidden">
+						<div className="text-secondary font-mono ms-1 text-.65rem w-16rem">
+							Single-use link, expires in 12hrs
+						</div>
+					</div>
 				</div>
 			</div>
-			<div className="w-full bg-stone-200 dark:bg-neutral-800 p-2">
-				<p className="text-xs leading-none font-mono text-neutral-700 dark:text-stone-200">
+			<div className="w-full h-2.5rem bg-stone-200 dark:bg-neutral-800 p-2 overflow-hidden">
+				<p className="text-xs leading-none font-mono text-neutral-700 dark:text-stone-200 w-16rem">
 					This link allows one person to join the project
 				</p>
 			</div>

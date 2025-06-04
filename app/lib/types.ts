@@ -15,7 +15,7 @@ export type Task = Prisma.TaskGetPayload<{
 	comments: number;
 };
 
-export type Project = Prisma.ProjectGetPayload<{
+export type ProjectWithTaskCount = Prisma.ProjectGetPayload<{
 	include: {
 		_count: {
 			select: {

@@ -5,7 +5,7 @@ import {
 	useMutation,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { useRevalidator } from "react-router";
+import { useParams, useRevalidator } from "react-router";
 import type { Task } from "./types";
 
 interface TaskProps {
@@ -18,8 +18,11 @@ export function useTasks({ assigneeId, search, status }: TaskProps = {}) {
 	const queryClient = useQueryClient();
 	const { revalidate } = useRevalidator();
 
+	const params = useParams();
+	const project = params.project;
+
 	const tasksQuery = useInfiniteQuery({
-		queryKey: ["tasks", assigneeId, search, status] as const,
+		queryKey: ["tasks", project, assigneeId, search, status] as const,
 		queryFn: fetchTasks,
 		getNextPageParam: (lastPage, pages) =>
 			lastPage.length === 0 ? undefined : pages.length,
@@ -42,14 +45,21 @@ export async function fetchTasks({
 	pageParam = 0,
 	queryKey,
 }: QueryFunctionContext<
-	readonly [string, assigneeId?: string, search?: string, status?: Status]
+	readonly [
+		string,
+		projectSlug?: string,
+		assigneeId?: string,
+		search?: string,
+		status?: Status,
+	]
 >) {
-	const [, assigneeId, search, filterStatus] = queryKey;
+	const [, projectSlug, assigneeId, search, filterStatus] = queryKey;
 	const params = new URLSearchParams({ page: String(pageParam) });
 
 	if (assigneeId) params.set("assigneeId", assigneeId);
 	if (search) params.set("search", search);
 	if (filterStatus) params.set("status", filterStatus);
+	if (projectSlug) params.set("project", projectSlug);
 
 	const res = await fetch(`/list?${params}`);
 	const data = await res.json();

@@ -12,7 +12,7 @@
     "typecheck": "react-router typegen && tsc",
     "makemigration": "prisma migrate dev --name $1",
     "vercel-build": "prisma generate && prisma migrate deploy && react-router build",
-    "migrate": "prisma migrate deploy"
+    "migrate": "prisma migrate deploy && prisma generate"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.8",
@@ -34,6 +34,7 @@
     "isbot": "^5.1.27",
     "jotai": "^2.12.4",
     "prisma": "^6.6.0",
+    "radashi": "^12.5.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.56.1",

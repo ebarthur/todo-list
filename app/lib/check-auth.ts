@@ -2,7 +2,7 @@ import { authCookie } from "./cookies.server";
 import { prisma } from "./prisma.server";
 import { unauthorized } from "./responses";
 
-async function checkAuth(request: Request) {
+export async function checkAuth(request: Request) {
 	const { userId } =
 		(await authCookie.parse(request.headers.get("Cookie"))) || {};
 
@@ -22,4 +22,20 @@ async function checkAuth(request: Request) {
 	}
 }
 
-export { checkAuth };
+export async function checkAccess(request: Request, projectSlug: string) {
+	const user = await checkAuth(request);
+	const access = await prisma.projectAccess.findFirst({
+		where: {
+			userId: user.id,
+			project: { slug: projectSlug },
+		},
+	});
+
+	if (!access) throw unauthorized();
+
+	const project = await prisma.project.findFirst({
+		where: { slug: projectSlug },
+	});
+
+	return { user, project };
+}
