@@ -1,4 +1,4 @@
-import { type LoaderFunctionArgs, type MetaFunction, redirect } from "react-router";
+import { type LoaderFunctionArgs, type MetaFunction, Outlet, redirect } from "react-router";
 import { Header } from "~/components/header";
 import { StatusBar } from "~/components/status-bar";
 import { Todos } from "~/components/todos";
@@ -8,6 +8,13 @@ import { prisma } from "~/lib/prisma.server";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	let user: Awaited<ReturnType<typeof checkAuth>>;
 
+	const url = new URL(request.url);
+	const slug = url.searchParams.get("slug");
+	const project = await prisma.project.findFirst({
+		where: {
+			slug: slug ?? ""
+		}
+	})
 	try {
 		user = await checkAuth(request);
 	} catch (error) {
@@ -35,6 +42,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		total: Number(total),
 		user,
 		users,
+		project_id: project?.id,
 		unreadNotifications,
 	};
 };
