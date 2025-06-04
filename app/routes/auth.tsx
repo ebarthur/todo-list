@@ -1,7 +1,9 @@
 import clsx from "clsx";
+import { tryit } from "radashi";
 import { type FieldValues, useForm } from "react-hook-form";
 import {
 	type ActionFunctionArgs,
+	Link,
 	type LoaderFunctionArgs,
 	type MetaFunction,
 	redirect,
@@ -11,44 +13,69 @@ import {
 } from "react-router";
 import { Button } from "~/components/button";
 import { Input } from "~/components/input";
-import { createAccount, login } from "~/lib/auth";
+import { admit, createAccount, login } from "~/lib/auth";
 import { checkAuth } from "~/lib/check-auth";
 import { USERNAME_REGEX } from "~/lib/constants";
 import { prisma } from "~/lib/prisma.server";
 import { badRequest } from "~/lib/responses";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	try {
-		await checkAuth(request);
+	const url = new URL(request.url);
+	const invite = url.searchParams.get("invite");
 
-		return redirect("/");
-	} catch (_) {
-		const url = new URL(request.url);
-		const invite = url.searchParams.get("invite");
-		const userCreated = await prisma.user.count();
+	const [_, user] = await tryit(checkAuth)(request);
 
-		let signupAllowed = false;
+	if (user) {
+		const user = await checkAuth(request);
 
-		if (userCreated === 0) {
-			signupAllowed = true;
-		} else if (invite) {
-			const valid = await prisma.inviteToken.findFirst({
-				where: {
-					token: invite,
-					used: false,
-					expiresAt: { gt: new Date() },
-				},
-			});
-			if (valid) signupAllowed = true;
+		if (invite) {
+			return await admit(user, invite);
 		}
 
-		return { userCreated, signupAllowed, invite };
+		return redirect("/");
 	}
+
+	const userCreated = await prisma.user.count();
+
+	let mode: "login" | "signup" = "login";
+
+	if (userCreated === 0) {
+		mode = "signup";
+	} else if (invite) {
+		const valid = await prisma.inviteToken.findFirst({
+			where: {
+				token: invite,
+				used: false,
+				expiresAt: { gt: new Date() },
+			},
+		});
+
+		if (!valid) {
+			throw badRequest({ detail: "Invalid or expired invite token" });
+		}
+
+		const override = url.searchParams.get("login") === "1";
+
+		mode = override ? "login" : "signup";
+	}
+
+	const overrideLink = new URL(request.url);
+
+	const isLoginOverride = overrideLink.searchParams.has("login");
+	if (isLoginOverride) {
+		overrideLink.searchParams.delete("login");
+	} else {
+		overrideLink.searchParams.set("login", "1");
+	}
+
+	return { userCreated, mode, invite, overrideLink };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
 	const url = new URL(request.url);
+
 	const invite = url.searchParams.get("invite");
+
 	const formData = await request.json();
 	const { username, password } = formData;
 
@@ -58,7 +85,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	const userCreated = await prisma.user.count();
 
-	if (userCreated === 0 || invite) {
+	if (userCreated === 0) {
+		return createAccount(username, password, invite);
+	}
+
+	if (invite) {
+		const shouldLogin = url.searchParams.get("login") === "1";
+
+		if (shouldLogin) {
+			return login(username, password, invite);
+		}
+
 		return createAccount(username, password, invite);
 	}
 
@@ -70,7 +107,8 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Login() {
-	const { userCreated, signupAllowed, invite } = useLoaderData<typeof loader>();
+	const { userCreated, mode, invite, overrideLink } =
+		useLoaderData<typeof loader>();
 	const actionData = useActionData<typeof action>();
 	const { register, handleSubmit, watch, reset } = useForm();
 	const submit = useSubmit();
@@ -82,14 +120,13 @@ export default function Login() {
 	const isUsernameValid = USERNAME_REGEX.test($username);
 
 	function onSubmit(data: FieldValues) {
-		const actionUrl = invite ? `/login?invite=${invite}` : "/login";
-
 		submit(JSON.stringify(data), {
 			method: "POST",
 			encType: "application/json",
-			action: actionUrl,
 		});
 	}
+
+	const showOverride = invite;
 
 	return (
 		<div className="flex h-screen w-screen items-center justify-center">
@@ -98,14 +135,14 @@ export default function Login() {
 					<h1 className="font-medium">
 						{userCreated === 0
 							? "Create Super User"
-							: signupAllowed
+							: mode === "signup"
 								? "Sign Up"
 								: "Login"}
 					</h1>
 					<p className="text-sm text-gray-500 mb-2">
 						{userCreated === 0
 							? "This is a first-time setup. Create a super user account."
-							: signupAllowed
+							: mode === "signup"
 								? "Enter a username and password to create your account."
 								: "Enter your username and password to log in."}
 					</p>
@@ -123,7 +160,7 @@ export default function Login() {
 									pattern: USERNAME_REGEX,
 								})}
 							/>
-							{(userCreated === 0 || signupAllowed) && $username && (
+							{(userCreated === 0 || mode === "signup") && $username && (
 								<span
 									className={clsx(
 										"absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full animate-fade-in animate-duration-200 ",
@@ -136,7 +173,9 @@ export default function Login() {
 
 						<div className="relative">
 							<Input
-								type={userCreated === 0 || signupAllowed ? "text" : "password"}
+								type={
+									userCreated === 0 || mode === "signup" ? "text" : "password"
+								}
 								placeholder="password"
 								className="font-mono pr-8"
 								{...register("password", {
@@ -147,7 +186,7 @@ export default function Login() {
 									},
 								})}
 							/>
-							{(userCreated === 0 || signupAllowed) && (
+							{(userCreated === 0 || mode === "signup") && (
 								<span
 									className={`
 					absolute right-2 top-1/2 -translate-y-1/2
@@ -159,15 +198,30 @@ export default function Login() {
 							)}
 						</div>
 
-						<Button className="gap-1" type="submit">
-							{signupAllowed ? "Sign Up" : "Login"}
-							<div
-								className={clsx({
-									"i-lucide-crown": userCreated === 0,
-									"i-lucide-corner-down-left": signupAllowed,
-								})}
-							/>
-						</Button>
+						<div>
+							<Button className="gap-1" type="submit">
+								{mode === "signup" ? "Sign Up" : "Login"}
+								<div
+									className={clsx({
+										"i-lucide-crown": userCreated === 0,
+										"i-lucide-corner-down-left": mode === "signup",
+									})}
+								/>
+							</Button>
+						</div>
+
+						{showOverride && (
+							<div className="mt-1">
+								<Link
+									to={overrideLink.toString()}
+									className="text-sm text-blue-500 underline"
+								>
+									{mode === "signup"
+										? "Already have an account"
+										: "I'm new here"}
+								</Link>
+							</div>
+						)}
 					</form>
 				</div>
 

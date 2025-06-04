@@ -1,4 +1,4 @@
-import type { Notification } from "@prisma/client";
+import type { Notification, Prisma } from "@prisma/client";
 import type { LoaderFunctionArgs } from "react-router";
 import { checkAuth } from "~/lib/check-auth";
 import { TASK_MENTION_REGEX, USER_MENTION_REGEX } from "~/lib/constants";
@@ -7,8 +7,17 @@ import { prisma } from "~/lib/prisma.server";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const user = await checkAuth(request);
 
+	const url = new URL(request.url);
+	const project = url.searchParams.get("project");
+
+	const where: Prisma.NotificationWhereInput = { userId: user.id };
+
+	if (project) {
+		where.project = { slug: project };
+	}
+
 	const notifications = await prisma.notification.findMany({
-		where: { userId: user.id },
+		where,
 		orderBy: { createdAt: "desc" },
 		take: 100,
 	});

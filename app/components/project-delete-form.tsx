@@ -22,8 +22,6 @@ export function ProjectDeleteForm({ project, onClose }: Props) {
 			onSuccess: async () => {
 				if (params.project === project.slug) {
 					navigate("/");
-					onClose();
-					return;
 				}
 
 				await Promise.all([

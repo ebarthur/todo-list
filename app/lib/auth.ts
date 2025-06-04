@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import argon2 from "argon2";
 import { redirect } from "react-router";
 import { authCookie } from "./cookies.server";
@@ -5,14 +6,14 @@ import { prisma } from "./prisma.server";
 import { badRequest } from "./responses";
 import { sendWebhook } from "./webhook";
 
-async function createAccount(
+export async function createAccount(
 	username: string,
 	password: string,
 	invite: string | null,
 ) {
 	const userCreated = await prisma.user.count();
 
-	if (userCreated > 0 && invite) {
+	if (invite) {
 		const valid = await prisma.inviteToken.findFirst({
 			where: {
 				token: invite,
@@ -31,13 +32,6 @@ async function createAccount(
 		return badRequest({ detail: "Username already taken" });
 	}
 
-	if (invite) {
-		await prisma.inviteToken.update({
-			where: { token: invite },
-			data: { used: true, usedAt: new Date() },
-		});
-	}
-
 	const hashedPassword = await argon2.hash(password);
 	const user = await prisma.user.create({
 		data: {
@@ -48,9 +42,26 @@ async function createAccount(
 	});
 
 	if (userCreated > 0) {
+		sendWebhook("user.joined", {
+			user,
+		});
+	}
+
+	if (invite) {
 		const allUsers = await prisma.user.findMany({
 			select: { id: true },
 		});
+
+		const res = await admit(user, invite);
+
+		const inviteProject = await prisma.inviteToken.findUnique({
+			where: { token: invite },
+			select: { projectId: true },
+		});
+
+		if (!inviteProject) {
+			return res;
+		}
 
 		await prisma.notification.createMany({
 			data: allUsers
@@ -63,12 +74,11 @@ async function createAccount(
 						newUserId: user.id,
 						username,
 					},
+					projectId: inviteProject.projectId,
 				})),
 		});
 
-		sendWebhook("user.joined", {
-			user,
-		});
+		return res;
 	}
 
 	return redirect("/", {
@@ -78,7 +88,11 @@ async function createAccount(
 	});
 }
 
-async function login(username: string, password: string) {
+export async function login(
+	username: string,
+	password: string,
+	token?: string | null,
+) {
 	const user = await prisma.user.findUnique({ where: { username } });
 	if (!user) {
 		return badRequest({ detail: "Incorrect username or password" });
@@ -89,6 +103,10 @@ async function login(username: string, password: string) {
 		return badRequest({ detail: "Incorrect username or password" });
 	}
 
+	if (token) {
+		return await admit(user, token);
+	}
+
 	return redirect("/", {
 		headers: {
 			"Set-Cookie": await authCookie.serialize({ userId: user.id }),
@@ -96,4 +114,32 @@ async function login(username: string, password: string) {
 	});
 }
 
-export { createAccount, login };
+export async function admit(
+	user: Prisma.UserGetPayload<{ omit: { password: true } }>,
+	token: string,
+) {
+	const inviteToken = await prisma.inviteToken.findFirst({
+		where: { token, used: false, expiresAt: { gt: new Date() } },
+		select: { projectId: true },
+	});
+
+	if (!inviteToken) {
+		throw badRequest({ detail: "Invalid or expired invite token" });
+	}
+
+	const access = await prisma.projectAccess.create({
+		data: { userId: user.id, projectId: inviteToken.projectId },
+		include: { project: true },
+	});
+
+	await prisma.inviteToken.update({
+		where: { token },
+		data: { used: true, usedAt: new Date() },
+	});
+
+	return redirect(`/${access.project.slug}`, {
+		headers: {
+			"Set-Cookie": await authCookie.serialize({ userId: user.id }),
+		},
+	});
+}

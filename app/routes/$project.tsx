@@ -25,7 +25,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 	if (err) {
 		if ("data" in err) throw err;
 
-		return redirect("/login");
+		return redirect("/auth");
 	}
 
 	const users = await prisma.user.findMany({
@@ -51,6 +51,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 		where: {
 			userId: access.user.id,
 			read: false,
+			projectId: project.id,
 		},
 	});
 

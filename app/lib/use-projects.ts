@@ -21,15 +21,7 @@ export function useProjects() {
 		},
 	});
 
-	const update = useMutation({
-		mutationFn: updateProject,
-		onSuccess: async () => {
-			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["projects"] }),
-				revalidate(),
-			]);
-		},
-	});
+	const update = useMutation({ mutationFn: updateProject });
 
 	const remove = useMutation({ mutationFn: deleteProject });
 

@@ -1,9 +1,12 @@
 import type { Project } from "@prisma/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { type FieldValues, useForm } from "react-hook-form";
+import { useNavigate, useRevalidator } from "react-router";
 import { SLUG_REGEX } from "~/lib/constants";
 import { slugify } from "~/lib/slugify";
 import { useProjects } from "~/lib/use-projects";
 import { Button } from "./button";
+import { usePopoverContext } from "./popover";
 
 interface Props {
 	onClose: () => void;
@@ -20,18 +23,45 @@ export function ProjectForm({ onClose, project }: Props) {
 		},
 	});
 
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const { revalidate } = useRevalidator();
+	const popover = usePopoverContext();
+
 	const $name = watch("name");
 	const slugifyName = slugify($name);
 
 	function onSubmit(data: FieldValues) {
 		const fn = project ? update : create;
+		const slug = data.slug || slugifyName;
+
 		const form = project
-			? { id: project.id, name: data.name }
-			: { ...data, slug: data.slug || slugifyName };
+			? { id: project.id, name: data.name, slug }
+			: { ...data, slug };
 
 		fn.mutate(form, {
-			onSuccess: () => {
+			onSuccess: async () => {
+				if (project) {
+					if (project.slug !== slug) {
+						popover.setOpen(false);
+						navigate(`/${slug}`);
+					} else {
+						onClose();
+						await Promise.all([
+							queryClient.invalidateQueries({ queryKey: ["projects"] }),
+							revalidate(),
+						]);
+					}
+
+					return;
+				}
+
 				onClose();
+
+				await Promise.all([
+					queryClient.invalidateQueries({ queryKey: ["projects"] }),
+					revalidate(),
+				]);
 			},
 		});
 	}
@@ -70,7 +100,6 @@ export function ProjectForm({ onClose, project }: Props) {
 						placeholder={`${slugifyName || "Slug"}`}
 						className="w-full rounded-b-lg font-mono border border-t-0 border-neutral-300 dark:border-neutral-700 bg-stone-200 dark:bg-neutral-800 px-2 py-1.5 text-sm truncate"
 						{...register("slug", { pattern: SLUG_REGEX })}
-						disabled={!!project}
 					/>
 				</div>
 

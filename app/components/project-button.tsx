@@ -19,7 +19,7 @@ export function ProjectButton() {
 	return (
 		<Popover placement="bottom-end">
 			<PopoverTrigger className="text-start dark:bg-neutral-800/30 rounded-s-full">
-				<div className="w-10rem p-1 pl-2 gap-2 flex items-center font-mono">
+				<div className="min-w-10rem p-1 pl-2 gap-2 flex items-center font-mono">
 					<div className="i-solar-layers-minimalistic-line-duotone text-xl" />
 					<div className="flex-1">
 						<p>{project.name}</p>

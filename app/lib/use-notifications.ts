@@ -1,11 +1,16 @@
-import { useRevalidator } from "react-router";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import {
+	type QueryFunctionContext,
+	useInfiniteQuery,
+	useMutation,
+} from "@tanstack/react-query";
+import { useParams, useRevalidator } from "react-router";
 
 export function useNotifications() {
 	const { revalidate } = useRevalidator();
+	const params = useParams();
 
 	const query = useInfiniteQuery({
-		queryKey: ["notifications"],
+		queryKey: ["notifications", params.project],
 		getNextPageParam: (lastPage, pages) =>
 			lastPage.length > 0 ? pages.length : undefined,
 		initialPageParam: 0,
@@ -19,14 +24,17 @@ export function useNotifications() {
 		},
 	});
 
-	return {
-		query,
-		read,
-	};
+	return { query, read };
 }
 
-async function fetchNotifications({ pageParam }: { pageParam: number }) {
-	const res = await fetch(`/notifications?page=${pageParam}`);
+async function fetchNotifications({
+	pageParam = 0,
+	queryKey,
+}: QueryFunctionContext<readonly [string, projectSlug?: string]>) {
+	const [, projectSlug] = queryKey;
+	const res = await fetch(
+		`/notifications?page=${pageParam}&project=${projectSlug}`,
+	);
 	const { notifications } = await res.json();
 
 	return notifications;

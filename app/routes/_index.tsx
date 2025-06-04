@@ -7,7 +7,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const [err, user] = await tryit(checkAuth)(request);
 
 	if (err) {
-		throw redirect("/login");
+		throw redirect("/auth");
 	}
 
 	const projects = await prisma.project.findMany({

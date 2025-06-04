@@ -59,6 +59,11 @@ export async function action({ request }: ActionFunctionArgs) {
 					username: true,
 				},
 			},
+			task: {
+				select: {
+					projectId: true,
+				},
+			},
 		},
 	});
 
@@ -68,6 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
 		taskId: comment.taskId,
 		authorId: comment.authorId,
 		authorUsername: comment.author.username,
+		projectId: comment.task.projectId,
 	};
 
 	await updateMentions(opts);

@@ -1,12 +1,13 @@
+import { tryit } from "radashi";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { checkAuth } from "~/lib/check-auth";
 import { prisma } from "~/lib/prisma.server";
 import { unauthorized } from "~/lib/responses";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-	const user = await checkAuth(request);
+	const [err, user] = await tryit(checkAuth)(request);
 
-	if (!user.superUser) {
+	if (err) {
 		throw unauthorized();
 	}
 
@@ -25,6 +26,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 				},
 			},
 		},
+		orderBy: { name: "asc" },
 	});
 
 	return { projects };

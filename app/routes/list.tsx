@@ -41,7 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	}
 
 	if (project) {
-		where.Project = { slug: project };
+		where.project = { slug: project };
 	}
 
 	const tasks = await prisma.task.findMany({
@@ -153,6 +153,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 							previousAssigneeId,
 							newAssigneeId: updates.assigneeId,
 						},
+						projectId: task.projectId,
 					},
 				});
 			}

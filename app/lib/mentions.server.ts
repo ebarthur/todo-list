@@ -4,6 +4,7 @@ import { prisma } from "~/lib/prisma.server";
 export interface CreateMentionOpts {
 	content: string;
 	taskId: number;
+	projectId: number;
 	authorId: number;
 	authorUsername: string;
 }
@@ -11,6 +12,7 @@ export interface CreateMentionOpts {
 export async function createMentions({
 	content,
 	taskId,
+	projectId,
 	authorId,
 	authorUsername,
 }: CreateMentionOpts) {
@@ -47,6 +49,7 @@ export async function createMentions({
 					taskId: taskId,
 					mentionedBy: authorId,
 				},
+				projectId,
 			},
 		});
 	}
@@ -60,6 +63,7 @@ export async function updateMentions({
 	content,
 	originalContent,
 	taskId,
+	projectId,
 	authorId,
 	authorUsername,
 }: EditMentionOpts) {
@@ -106,6 +110,7 @@ export async function updateMentions({
 					taskId: taskId,
 					mentionedBy: authorId,
 				},
+				projectId,
 			},
 		});
 	}
