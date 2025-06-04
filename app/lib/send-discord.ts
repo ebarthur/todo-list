@@ -75,7 +75,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 			embed.title = "📣 New Task Created";
 			embed.description = `${task.title} \`#${task.id}\``;
 
-			if (baseUrl && task.id) {
+			if (baseUrl) {
 				embed.url = baseUrl;
 			}
 
@@ -97,7 +97,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 
 			if (user) {
 				embed.author = {
-					name: `Created by @${user.username}`,
+					name: `@${user.username}`,
 					icon_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(user.username)}`,
 				};
 			}
@@ -110,7 +110,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 
 			embed.title = "✏️ Task Updated";
 			embed.description = `Title update for \`#${task.id}\``;
-			if (baseUrl && task.id) {
+			if (baseUrl) {
 				embed.url = baseUrl;
 			}
 
@@ -122,7 +122,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 
 			if (user) {
 				embed.author = {
-					name: `Updated by @${user.username}`,
+					name: `@${user.username}`,
 					icon_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(user.username)}`,
 				};
 			}
@@ -140,7 +140,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 					? `~~${task.title}~~ \`#${task.id}\``
 					: `${task.title} \`#${task.id}\``;
 
-			if (baseUrl && task.id) {
+			if (baseUrl) {
 				embed.url = baseUrl;
 			}
 
@@ -159,7 +159,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 
 			if (user) {
 				embed.author = {
-					name: `Changed by @${user.username}`,
+					name: `@${user.username}`,
 					icon_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(user.username)}`,
 				};
 			}
@@ -172,7 +172,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 
 			embed.title = "🖇️ Task Assigned";
 			embed.description = `${task.title} \`#${task.id}\``;
-			if (baseUrl && task.id) {
+			if (baseUrl) {
 				embed.url = baseUrl;
 			}
 
@@ -188,7 +188,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 
 			if (user) {
 				embed.author = {
-					name: `Assigned by @${user.username}`,
+					name: `@${user.username}`,
 					icon_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(user.username)}`,
 				};
 			}
@@ -204,7 +204,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 
 			if (user) {
 				embed.author = {
-					name: `Deleted by @${user.username}`,
+					name: `@${user.username}`,
 					icon_url: `https://api.dicebear.com/9.x/dylan/png?seed=${encodeURIComponent(user.username)}`,
 				};
 			}
@@ -217,7 +217,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 
 			embed.title = "💬 New Comment";
 			embed.description = `On task: ${task.title} \`#${task.id}\``;
-			if (baseUrl && task.id) {
+			if (baseUrl) {
 				embed.url = baseUrl;
 			}
 
