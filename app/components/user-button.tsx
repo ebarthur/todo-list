@@ -8,8 +8,8 @@ export function UserButton() {
 
 	return (
 		<Popover placement="bottom-end">
-			<PopoverTrigger className="bg-stone-200/50 dark:bg-neutral-800/50 px-2 py-1 rounded-full">
-				<div className="flex gap-2">
+			<PopoverTrigger asChild>
+				<div className="flex p-1 pr-2 gap-2">
 					<img
 						src={`https://api.dicebear.com/9.x/dylan/svg?seed=${user.username}`}
 						className="size-6 rounded-full bg-amber-500"
