@@ -105,8 +105,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 		}
 
 		case "task.updated": {
-			const { task, user, updatedFields } =
-				event as WebhookEvent<"task.updated">;
+			const { task, user, updatedFields } = event as WebhookEvent<"task.updated">;
 			if (!task || !updatedFields) break;
 
 			embed.title = "✏️ Task Updated";
@@ -226,9 +225,7 @@ function createWebhookPayload(event: AnyWebhookEvent): DiscordWebhookPayload {
 				{
 					name: "Comment",
 					value:
-						comment.length > 1018
-							? `${comment.substring(0, 1015)}...`
-							: `${comment}`,
+						comment.length > 1018 ? `${comment.substring(0, 1015)}...` : `${comment}`,
 				},
 			];
 

@@ -66,9 +66,12 @@ export function Header() {
 
 				<div>
 					<div
-						className={clsx("i-svg-spinners-270-ring opacity-0 transition-opacity duration-300", {
-							"opacity-100": isFetching,
-						})}
+						className={clsx(
+							"i-svg-spinners-270-ring opacity-0 transition-opacity duration-300",
+							{
+								"opacity-100": isFetching,
+							},
+						)}
 					/>
 				</div>
 			</div>

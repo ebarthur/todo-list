@@ -33,9 +33,7 @@ export function usePopover({
 }: PopoverOptions = {}) {
 	const [uncontrolledOpen, setUncontrolledOpen] = React.useState(initialOpen);
 	const [labelId, setLabelId] = React.useState<string | undefined>();
-	const [descriptionId, setDescriptionId] = React.useState<
-		string | undefined
-	>();
+	const [descriptionId, setDescriptionId] = React.useState<string | undefined>();
 
 	const open = controlledOpen ?? uncontrolledOpen;
 	const setOpen = setControlledOpen ?? setUncontrolledOpen;
@@ -87,9 +85,7 @@ export function usePopover({
 type ContextType =
 	| (ReturnType<typeof usePopover> & {
 			setLabelId: React.Dispatch<React.SetStateAction<string | undefined>>;
-			setDescriptionId: React.Dispatch<
-				React.SetStateAction<string | undefined>
-			>;
+			setDescriptionId: React.Dispatch<React.SetStateAction<string | undefined>>;
 	  })
 	| null;
 
@@ -116,9 +112,7 @@ export function Popover({
 	// or other positioning options.
 	const popover = usePopover({ modal, ...restOptions });
 	return (
-		<PopoverContext.Provider value={popover}>
-			{children}
-		</PopoverContext.Provider>
+		<PopoverContext.Provider value={popover}>{children}</PopoverContext.Provider>
 	);
 }
 

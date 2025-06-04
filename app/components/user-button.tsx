@@ -18,7 +18,7 @@ export function UserButton() {
 					<div className="font-mono">{user.username}</div>
 				</div>
 			</PopoverTrigger>
-			
+
 			<PopoverContent className="z-100">
 				<UserMenu />
 			</PopoverContent>

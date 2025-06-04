@@ -1,5 +1,5 @@
 import { visit } from "unist-util-visit";
-import type { Plugin } from 'unified'
+import type { Plugin } from "unified";
 
 function removeCodeTrail(): ReturnType<Plugin> {
 	return (tree) => {
@@ -16,4 +16,4 @@ function removeCodeTrail(): ReturnType<Plugin> {
 	};
 }
 
-export { removeCodeTrail}
+export { removeCodeTrail };

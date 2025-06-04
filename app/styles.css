@@ -1,102 +1,99 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&display=swap");
 
 :root {
-  font-size: 14px;
-  font-family: system-ui, -apple-system, sans-serif;
-  color-scheme: light dark;
+	font-size: 14px;
+	font-family: system-ui, -apple-system, sans-serif;
+	color-scheme: light dark;
 
-  @apply bg-stone-100 dark:bg-neutral-900;
+	@apply bg-stone-100 dark:bg-neutral-900;
 }
 
 .text-secondary {
-  @apply text-stone-500 dark:text-neutral-400;
+	@apply text-stone-500 dark:text-neutral-400;
 }
 
 .font-mono {
-  font-family: 'DM Mono', monospace;
+	font-family: "DM Mono", monospace;
 }
 
 input::placeholder,
 textarea::placeholder {
-  @apply text-stone-500/90 dark:text-neutral-500/90;
+	@apply text-stone-500/90 dark:text-neutral-500/90;
 }
 
 code {
-  font-family: 'DM Mono', monospace;
+	font-family: "DM Mono", monospace;
 }
 
 .shiki {
-  counter-reset: step;
-  counter-increment: step 0;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+	counter-reset: step;
+	counter-increment: step 0;
+	padding: 0.5rem 1rem;
+	border-radius: 0.5rem;
 }
 
 .shiki .line {
-  line-height: 1;
+	line-height: 1;
 }
 
 .shiki .line::before {
-  content: counter(step);
-  counter-increment: step;
-  width: 1rem;
-  margin-right: 1.5rem;
-  display: inline-block;
-  text-align: right;
-  color: rgba(115, 138, 148, .4);
+	content: counter(step);
+	counter-increment: step;
+	width: 1rem;
+	margin-right: 1.5rem;
+	display: inline-block;
+	text-align: right;
+	color: rgba(115, 138, 148, 0.4);
 }
 
 @media (prefers-color-scheme: dark) {
-
-  .shiki,
-  .shiki span {
-    color: var(--shiki-dark) !important;
-    background-color: var(--shiki-dark-bg) !important;
-    /* Optional, if you also want font styles */
-    font-style: var(--shiki-dark-font-style) !important;
-    font-weight: var(--shiki-dark-font-weight) !important;
-    text-decoration: var(--shiki-dark-text-decoration) !important;
-  }
+	.shiki,
+	.shiki span {
+		color: var(--shiki-dark) !important;
+		background-color: var(--shiki-dark-bg) !important;
+		/* Optional, if you also want font styles */
+		font-style: var(--shiki-dark-font-style) !important;
+		font-weight: var(--shiki-dark-font-weight) !important;
+		text-decoration: var(--shiki-dark-text-decoration) !important;
+	}
 }
 
 .comment-article img {
-  max-width: 320px;
-  @apply rounded-xl;
+	max-width: 320px;
+	@apply rounded-xl;
 }
 
-.comment-article p+:is(p, ul, ol, pre) {
-  @apply mt-2;
+.comment-article p + :is(p, ul, ol, pre) {
+	@apply mt-2;
 }
 
 .comment-article :is(p, ul, ol, pre) + p {
-  @apply mt-2;
+	@apply mt-2;
 }
 
 .comment-article ul {
-  @apply list-disc list-inside;
+	@apply list-disc list-inside;
 }
 
 .comment-article ol {
-  @apply list-decimal list-inside;
+	@apply list-decimal list-inside;
 }
 
 .comment-article pre {
-  @apply overflow-x-auto rounded-xl bg-neutral-100 dark:bg-neutral-800 p-3 text-sm max-w-7xl max-h-3xl;
-
+	@apply overflow-x-auto rounded-xl bg-neutral-100 dark:bg-neutral-800 p-3 text-sm max-w-7xl max-h-3xl;
 }
 
-
 .comment-article a {
-  @apply text-blue-600 dark:text-blue-400 hover:underline underline-offset-2 transition-colors;
+	@apply text-blue-600 dark:text-blue-400 hover:underline underline-offset-2 transition-colors;
 }
 
 .comment-article code {
-  @apply whitespace-pre;
-  font-family: 'DM Mono', monospace;
+	@apply whitespace-pre;
+	font-family: "DM Mono", monospace;
 }
 
 code:not(.shiki code):not(.shiki .line code) {
-  font-family: 'DM Mono', monospace;
-  @apply px-1 py-0 rounded-lg bg-stone-200 dark:bg-neutral-800;
+	font-family: "DM Mono", monospace;
+	@apply px-1 py-0 rounded-lg bg-stone-200 dark:bg-neutral-800;
 }

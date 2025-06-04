@@ -1,4 +1,9 @@
-import { type LoaderFunctionArgs, type MetaFunction, Outlet, redirect } from "react-router";
+import {
+	type LoaderFunctionArgs,
+	type MetaFunction,
+	Outlet,
+	redirect,
+} from "react-router";
 import { Header } from "~/components/header";
 import { StatusBar } from "~/components/status-bar";
 import { Todos } from "~/components/todos";
@@ -12,9 +17,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const slug = url.searchParams.get("slug");
 	const project = await prisma.project.findFirst({
 		where: {
-			slug: slug ?? ""
-		}
-	})
+			slug: slug ?? "",
+		},
+	});
 	try {
 		user = await checkAuth(request);
 	} catch (error) {

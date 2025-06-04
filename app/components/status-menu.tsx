@@ -36,8 +36,7 @@ export function StatusMenu({ task, onStatusUpdate }: StatusMenuProps) {
 						className={clsx(
 							"flex items-center pl-3 rounded-lg  hover:bg-neutral-200/80 dark:hover:bg-neutral-800/20",
 							{
-								"bg-neutral-200/80 dark:bg-neutral-800/20":
-									s.id === task.status,
+								"bg-neutral-200/80 dark:bg-neutral-800/20": s.id === task.status,
 							},
 						)}
 					>

@@ -23,7 +23,12 @@ export function TaskComposer() {
 		if (project_id === null || project_id === undefined) return;
 
 		create.mutate(
-			{ title: title.trim(), assigneeId: user.id, authorId: user.id , projectId: project_id },
+			{
+				title: title.trim(),
+				assigneeId: user.id,
+				authorId: user.id,
+				projectId: project_id,
+			},
 			{
 				onSuccess: () => {
 					formRef.current?.reset();
@@ -53,7 +58,7 @@ export function TaskComposer() {
 					placeholder="What needs done?"
 					name="title"
 					className="flex-1 font-medium bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0"
-					disabled={create.isPending || project_id === null }
+					disabled={create.isPending || project_id === null}
 					ref={inputRef}
 				/>
 

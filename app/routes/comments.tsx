@@ -76,8 +76,8 @@ export async function action({ request }: ActionFunctionArgs) {
 		include: {
 			author: {
 				omit: {
-					password: true
-				}
+					password: true,
+				},
 			},
 		},
 	});

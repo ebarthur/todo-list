@@ -1,4 +1,9 @@
-import { differenceInDays, differenceInHours, format, isSameDay } from "date-fns";
+import {
+	differenceInDays,
+	differenceInHours,
+	format,
+	isSameDay,
+} from "date-fns";
 
 export function age(date: Date) {
 	const now = new Date();

@@ -42,9 +42,7 @@ function FilterMenu() {
 							}}
 						>
 							<span>{s.label}</span>
-							{s.id === filterStatus && (
-								<div className="i-lucide-x text-secondary" />
-							)}
+							{s.id === filterStatus && <div className="i-lucide-x text-secondary" />}
 						</button>
 					</li>
 				))}
