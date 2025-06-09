@@ -78,7 +78,7 @@ export async function createAccount(
 	if (userCreated === 0) {
 		const projects = await prisma.project.findMany();
 
-		prisma.projectAccess.createMany({
+		await prisma.projectAccess.createMany({
 			data: projects.map((project) => ({
 				userId: user.id,
 				projectId: project.id,
