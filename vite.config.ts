@@ -5,4 +5,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	plugins: [reactRouter(), UnoCSS(), tsconfigPaths()],
+	server: {
+		allowedHosts: ["a4cc-154-161-28-122.ngrok-free.app"],
+	},
 });
