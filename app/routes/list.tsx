@@ -115,6 +115,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 				assigneeId: true,
 				status: true,
 				title: true,
+				pinned: true,
 			},
 		});
 
