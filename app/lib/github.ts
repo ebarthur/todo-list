@@ -3,19 +3,47 @@ import { TASK_ID_REGEX } from "./constants";
 import { prisma } from "./prisma.server";
 import { sendWebhook } from "./webhook";
 
-interface GitHubPullRequestEvent {
-	action: string;
-	pull_request: {
-		head: {
-			ref: string;
-		};
-		html_url: string;
-		number: number;
-		merged: boolean;
-	};
+async function handlePullRequestEvent(event: any) {
+	switch (event.action) {
+		case "opened":
+		case "reopened":
+			await handlePROpened(event);
+			break;
+		case "closed":
+			if (event.pull_request.merged) {
+				await handlePRMerged(event);
+			}
+			break;
+	}
 }
 
-async function handlePROpened(event: GitHubPullRequestEvent) {
+async function handleInstallationEvent(event: any) {
+	const installationId = event.installation.id;
+
+	switch (event.action) {
+		case "deleted":
+			await prisma.installation.delete({
+				where: { githubInstallationId: installationId },
+			});
+			break;
+
+		case "suspend":
+			await prisma.installation.update({
+				where: { githubInstallationId: installationId },
+				data: { active: false },
+			});
+			break;
+
+		case "unsuspend":
+			await prisma.installation.update({
+				where: { githubInstallationId: installationId },
+				data: { active: true },
+			});
+			break;
+	}
+}
+
+async function handlePROpened(event: any) {
 	const branchName = event.pull_request.head.ref;
 	const taskId = extractTaskId(branchName);
 
@@ -45,7 +73,7 @@ async function handlePROpened(event: GitHubPullRequestEvent) {
 	}
 }
 
-async function handlePRMerged(event: GitHubPullRequestEvent) {
+async function handlePRMerged(event: any) {
 	const branchName = event.pull_request.head.ref;
 	const taskId = extractTaskId(branchName);
 
@@ -99,4 +127,4 @@ async function updateTask({
 	});
 }
 
-export { handlePRMerged, handlePROpened, type GitHubPullRequestEvent };
+export { handleInstallationEvent, handlePullRequestEvent };
