@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import {
 	TASK_LIST_CHECKED_REGEX,
 	TASK_LIST_LABEL_REGEX,
@@ -18,7 +18,7 @@ export function TaskListItem({
 	updateComment,
 }: TaskListItemProps) {
 	const initialChecked = TASK_LIST_CHECKED_REGEX.test(line);
-	const [isChecked, setIsChecked] = useState(initialChecked);
+	const [isChecked, setIsChecked] = React.useState(initialChecked);
 
 	function handleChange(checked: boolean) {
 		if (!content.includes(line)) return;

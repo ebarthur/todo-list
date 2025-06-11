@@ -26,7 +26,7 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 	const remove = useCommentDelete(taskId);
 
 	React.useEffect(() => {
-		if ((isEditing || !rawContent) && !fetcher.data) {
+		if (isEditing && !rawContent && !fetcher.data) {
 			fetcher.load(`/edit-comment?id=${comment.id}`);
 		}
 	}, [isEditing, comment.id, fetcher.load, rawContent, fetcher.data]);
@@ -41,6 +41,7 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 		if (!rawContent.trim()) return;
 
 		const updatedContent = rawContent.trim();
+		setRawContent(updatedContent);
 
 		edit.mutate({
 			id: comment.id,

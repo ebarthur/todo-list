@@ -103,7 +103,7 @@ code:not(.shiki code):not(.shiki .line code) {
 }
 
 .comment-article li > input[type="checkbox"] {
-	display: none;
+	@apply rounded-md bg-stone-200 dark:bg-neutral-500 border-2 border-stone-400 dark:border-neutral-700 focus:ring-0 cursor-pointer w-4 h-4 ml-2;
 }
 
 @keyframes colorchange {

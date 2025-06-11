@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLoaderData } from "react-router";
 import type { ProjectWithTaskCount } from "~/lib/types";
 import { useProjects } from "~/lib/use-projects";
@@ -41,7 +41,7 @@ type View =
 	| "edit-project-form"
 	| "delete-project-form";
 function Content() {
-	const [view, setView] = useState<View>("list");
+	const [view, setView] = React.useState<View>("list");
 
 	const { user, project: activeProject } = useLoaderData<typeof loader>();
 	const { query } = useProjects();

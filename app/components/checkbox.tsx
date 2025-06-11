@@ -22,7 +22,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
 				checked={checked}
 				onChange={handleToggle}
 				className={clsx(
-					"rounded-md bg-stone-200 dark:bg-neutral-500 border-2 border-stone-400 dark:border-neutral-700 focus:ring-0 cursor-pointer w-4 h-4 ml-1",
+					"rounded-md bg-stone-200 dark:bg-neutral-500 border-2 border-stone-400 dark:border-neutral-700 focus:ring-0 cursor-pointer w-4 h-4 ml-2",
 					className,
 				)}
 				{...props}

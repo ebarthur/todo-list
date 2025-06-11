@@ -1,5 +1,6 @@
 import React from "react";
 import { useLoaderData } from "react-router";
+import { magicInput } from "~/lib/magic-input";
 import { useComments } from "~/lib/use-comments";
 import type { loader } from "~/routes/_index";
 
@@ -48,17 +49,26 @@ export function CommentComposer({ taskId }: Props) {
 		handleResize.current();
 	}, []);
 
-	return (
-		<form
-			onSubmit={handleSubmit}
-			onKeyDown={(e) => {
-				if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-					e.preventDefault();
-					e.currentTarget.requestSubmit();
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+			e.preventDefault();
+			e.currentTarget.form?.requestSubmit();
+			return;
+		}
+
+		if (
+			magicInput(e, inputRef.current?.value || "", (newValue) => {
+				if (inputRef.current) {
+					inputRef.current.value = newValue;
 				}
-			}}
-			className="relative"
-		>
+			})
+		) {
+			return;
+		}
+	};
+
+	return (
+		<form onSubmit={handleSubmit} className="relative">
 			{create.isPending && (
 				<div className="absolute top-2 right-2 i-svg-spinners-270-ring text-secondary" />
 			)}
@@ -73,6 +83,7 @@ export function CommentComposer({ taskId }: Props) {
 					disabled={create.isPending}
 					onChange={handleResize.current}
 					onInput={handleResize.current}
+					onKeyDown={handleKeyDown}
 				/>
 			</div>
 

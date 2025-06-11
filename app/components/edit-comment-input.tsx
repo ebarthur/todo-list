@@ -1,4 +1,5 @@
 import React from "react";
+import { magicInput } from "~/lib/magic-input";
 
 interface EditInputProps {
 	value: string;
@@ -41,9 +42,15 @@ function EditCommentInput({
 		if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
 			e.preventDefault();
 			onConfirm();
-		} else if (e.key === "Escape") {
-			onCancel();
+			return;
 		}
+
+		if (e.key === "Escape") {
+			onCancel();
+			return;
+		}
+
+		if (magicInput(e, value, onChange)) return;
 	};
 
 	return (
