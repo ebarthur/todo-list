@@ -3,7 +3,32 @@ import { TASK_ID_REGEX } from "./constants";
 import { prisma } from "./prisma.server";
 import { sendWebhook } from "./webhook";
 
-async function handlePullRequestEvent(event: any) {
+export interface InstallationEvent {
+	installation: {
+		id: number;
+	};
+	action: "deleted" | "suspend" | "unsuspend";
+}
+
+export interface PREvent {
+	pull_request: {
+		head: {
+			ref: string;
+		};
+		html_url: string;
+		number: number;
+		merged: boolean;
+	};
+	action: "opened" | "reopened" | "closed";
+}
+
+export type EventTypeMap = {
+	installation: InstallationEvent;
+	pull_request: PREvent;
+};
+
+export type GitHubEventType = keyof EventTypeMap;
+async function handlePullRequestEvent(event: PREvent) {
 	switch (event.action) {
 		case "opened":
 		case "reopened":
@@ -17,7 +42,7 @@ async function handlePullRequestEvent(event: any) {
 	}
 }
 
-async function handleInstallationEvent(event: any) {
+async function handleInstallationEvent(event: InstallationEvent) {
 	const installationId = event.installation.id;
 
 	switch (event.action) {
@@ -43,7 +68,7 @@ async function handleInstallationEvent(event: any) {
 	}
 }
 
-async function handlePROpened(event: any) {
+async function handlePROpened(event: PREvent) {
 	const branchName = event.pull_request.head.ref;
 	const taskId = extractTaskId(branchName);
 
@@ -73,7 +98,7 @@ async function handlePROpened(event: any) {
 	}
 }
 
-async function handlePRMerged(event: any) {
+async function handlePRMerged(event: PREvent) {
 	const branchName = event.pull_request.head.ref;
 	const taskId = extractTaskId(branchName);
 

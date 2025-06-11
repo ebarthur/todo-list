@@ -1,21 +1,28 @@
 import crypto from "node:crypto";
 import type { ActionFunctionArgs } from "react-router";
-import { handleInstallationEvent, handlePullRequestEvent } from "~/lib/github";
+import {
+	type EventTypeMap,
+	type GitHubEventType,
+	handleInstallationEvent,
+	handlePullRequestEvent,
+	type InstallationEvent,
+	type PREvent,
+} from "~/lib/github";
 import { badRequest } from "~/lib/responses";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-	const event = await request.json();
-	const eventType = request.headers.get("x-github-event");
+	const eventType = request.headers.get("x-github-event") as GitHubEventType;
+	const event = (await request.json()) as EventTypeMap[typeof eventType];
 	const signature = request.headers.get("x-hub-signature-256")!;
-	
+
 	verifyRequest(event, signature);
 
 	switch (eventType) {
 		case "installation":
-			await handleInstallationEvent(event);
+			await handleInstallationEvent(event as InstallationEvent);
 			break;
 		case "pull_request":
-			await handlePullRequestEvent(event);
+			await handlePullRequestEvent(event as PREvent);
 			break;
 	}
 
