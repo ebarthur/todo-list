@@ -75,7 +75,7 @@ export function handleAutoBrackets(
 		}
 
 		if (prevChar === "`" && value.charAt(selectionStart - 2) === "`") {
-			onChange(insertText(value, selectionStart, selectionStart, "\n\n```"));
+			onChange(insertText(value, selectionStart, selectionStart, "`\n\n```"));
 			setCursor(textarea, selectionStart + 2);
 			return true;
 		}

@@ -60,9 +60,16 @@ export function CommentComposer({ taskId }: Props) {
 			magicInput(e, inputRef.current?.value || "", (newValue) => {
 				if (inputRef.current) {
 					inputRef.current.value = newValue;
+
+					handleResize.current();
+
+					const { selectionStart } = inputRef.current;
+					inputRef.current.setSelectionRange(selectionStart, selectionStart);
+					inputRef.current.scrollTop = inputRef.current.scrollHeight;
 				}
 			})
 		) {
+			e.preventDefault();
 			return;
 		}
 	};

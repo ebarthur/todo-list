@@ -12,36 +12,42 @@ function handleAutoCheckbox(
 	const currentLineStart = beforeCursor.lastIndexOf("\n") + 1;
 	const currentLine = value.substring(currentLineStart, selectionStart);
 
-	const taskListMatch = currentLine.match(/^(\s*)([-*])\s+\[( |x)\](.*)$/);
+	const listMatch = currentLine.match(/^(\s*)([-*])\s+(?:\[( |x)\]\s*)?(.*)$/);
 
-	if (!taskListMatch) return false;
+	if (listMatch) {
+		e.preventDefault();
 
-	e.preventDefault();
+		const [, indent, bullet, checkboxState, content] = listMatch;
+		const isCheckbox = checkboxState !== undefined;
 
-	const [, indent, bullet, , contentAfterCheckbox] = taskListMatch;
-	if (!contentAfterCheckbox.trim()) {
+		if (!content.trim()) {
+			const newValue =
+				value.substring(0, currentLineStart) +
+				value.substring(selectionStart + 1);
+
+			onChange(newValue);
+			textarea.setSelectionRange(currentLineStart, currentLineStart);
+
+			return true;
+		}
+
+		const newListItem = isCheckbox
+			? `\n${indent}${bullet} [ ] `
+			: `\n${indent}${bullet} `;
+
 		const newValue =
-			value.substring(0, currentLineStart) +
-			value.substring(selectionStart + 1);
+			value.substring(0, selectionStart) +
+			newListItem +
+			value.substring(selectionStart);
 
+		const newCursorPos = selectionStart + newListItem.length;
 		onChange(newValue);
-		textarea.setSelectionRange(currentLineStart, currentLineStart);
+		textarea.setSelectionRange(newCursorPos, newCursorPos);
 
 		return true;
 	}
 
-	const newTaskItem = `\n${indent}${bullet} [ ] `;
-
-	const newValue =
-		value.substring(0, selectionStart) +
-		newTaskItem +
-		value.substring(selectionStart);
-
-	const newCursorPos = selectionStart + newTaskItem.length;
-	onChange(newValue);
-	textarea.setSelectionRange(newCursorPos, newCursorPos);
-
-	return true;
+	return false;
 }
 
 export { handleAutoCheckbox };

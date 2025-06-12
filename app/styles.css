@@ -112,3 +112,11 @@ code:not(.shiki code):not(.shiki .line code) {
   66%  { color: rgb(34, 197, 94); }  /* green-500 */
   100% { color: rgb(244, 63, 94); }  /* rose-500 */
 }
+
+textarea {
+	scrollbar-width: none;
+}
+
+textarea::-webkit-scrollbar {
+	display: none;
+}

@@ -50,7 +50,35 @@ function EditCommentInput({
 			return;
 		}
 
-		if (magicInput(e, value, onChange)) return;
+		const textarea = inputRef.current;
+		if (!textarea) return;
+
+		const oldSelectionStart = textarea.selectionStart;
+
+		if (
+			magicInput(e, value, (newValue) => {
+				onChange(newValue);
+
+				handleResize();
+
+				requestAnimationFrame(() => {
+					if (!inputRef.current) return;
+
+					const offset = newValue.length - value.length;
+					const newPos = oldSelectionStart + offset;
+
+					inputRef.current.setSelectionRange(newPos, newPos);
+
+					const { scrollHeight, clientHeight } = inputRef.current;
+					if (scrollHeight > clientHeight) {
+						inputRef.current.scrollTop = scrollHeight;
+					}
+				});
+			})
+		) {
+			e.preventDefault();
+			return;
+		}
 	};
 
 	return (
