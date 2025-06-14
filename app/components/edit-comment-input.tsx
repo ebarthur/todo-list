@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Media } from "@prisma/client";
 import clsx from "clsx";
 import React from "react";
 import { magicInput } from "~/lib/magic-input";
@@ -9,9 +9,7 @@ interface EditInputProps {
 	onChange: (value: string) => void;
 	onConfirm: () => void;
 	onCancel: () => void;
-	media?: Prisma.CommentGetPayload<{
-		include: { Media: true };
-	}>;
+	media?: Media[];
 	onRemoveMedia?: (mediaIds: number[]) => void;
 }
 
@@ -116,8 +114,7 @@ function EditCommentInput({
 		setDiscardedMedia((prev) => [...prev, mediaId]);
 	}
 
-	const attached =
-		media?.Media?.filter((it) => !discardedMedia.includes(it.id)) || [];
+	const attached = media?.filter((it) => !discardedMedia.includes(it.id)) || [];
 
 	return (
 		<div>
