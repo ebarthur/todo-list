@@ -25,6 +25,7 @@ BASE_URL= # falls back to VERCEL_PROJECT_PRODUCTION_URL which is set on Vercel e
 WEBHOOK_URL= # optional
 DISCORD_WEBHOOK_URL= # optional, see Webhook section
 DISCORD_BOT_NAME= # optional, defaults to "kovacs"
+GITHUB_WEBHOOK_SECRET= # required for GitHub integration, see GitHub Integration section
 ```
 
 ## Webhook Integration
@@ -38,6 +39,8 @@ If a `WEBHOOK_URL` is provided, the endpoint is called with the following events
 | `task.deleted` | Triggered when a task is deleted |
 | `task.status_changed` | Triggered when a task's status changes |
 | `task.assigned` | Triggered when a task is assigned to a user |
+| `task.pr_opened` | Triggered when a GitHub PR is opened for a task |
+| `task.pr_merged` | Triggered when a GitHub PR is merged for a task |
 | `comment.created` | Triggered when a comment is added to a task |
 | `user.joined` | Triggered when a new user joins the system |
 
@@ -51,5 +54,24 @@ To set up Discord notifications:
 2. Set `WEBHOOK_URL` to `https://<your-todolist-domain>/webhook/discord`
 
 Voila, your discord server will start receiving events.
+
+### GitHub Integration
+
+Automatically update task statuses based on GitHub pull request events.
+
+**Setup:**
+1. Generate a webhook secret: `openssl rand -hex 32`
+2. Add `GITHUB_WEBHOOK_SECRET=your_secret` to environment variables
+3. In GitHub repo → Settings → Webhooks → Add webhook:
+   - Payload URL: `https://<your-domain>/webhook/github`
+   - Content type: `application/json`
+   - Secret: your generated secret
+   - Events: Pull requests
+
+**Branch naming:** Include task IDs with `#` format (e.g., `art/auth-#123`, `test-#4`)
+
+**Automatic updates:**
+- PR opened → Task status: "inReview"
+- PR merged → Task status: "done"
 
 
