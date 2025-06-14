@@ -79,7 +79,7 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 							</p>
 						) : isEditing ? (
 							<EditCommentInput
-								media={comment}
+								media={comment.Media}
 								value={rawContent}
 								onChange={setRawContent}
 								onConfirm={handleEdit}
