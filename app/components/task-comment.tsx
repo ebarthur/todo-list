@@ -37,6 +37,8 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 	const remove = useCommentDelete(taskId);
 	const removeMedia = useRemoveMedia(taskId);
 
+	const isAuthor = user.id === comment.authorId;
+
 	React.useEffect(() => {
 		if (isEditing && !rawContent && !fetcher.data) {
 			fetcher.load(`/edit-comment?id=${comment.id}`);
@@ -64,6 +66,8 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 
 	const handleInlineToggle = React.useCallback(
 		async (line: number, checked: boolean) => {
+			if (!isAuthor) return;
+
 			try {
 				setIsToggling(true);
 				const res = await fetch(`/edit-comment?id=${comment.id}`);
@@ -105,7 +109,7 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 				setIsToggling(false);
 			}
 		},
-		[edit.mutate, comment.id, user.id],
+		[edit.mutate, comment.id, user.id, isAuthor],
 	);
 
 	return (
@@ -149,7 +153,7 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 						)}
 					</div>
 
-					{user.id === comment.authorId && !comment.deletedAt && (
+					{isAuthor && !comment.deletedAt && (
 						<CommentMenu
 							onDelete={() => remove.mutate(comment.id)}
 							onEdit={() => setIsEditing(true)}
