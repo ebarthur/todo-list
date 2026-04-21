@@ -20,10 +20,10 @@ export function TaskComments({ opened, taskId }: Props) {
 	React.useEffect(() => {
 		if (!commentToEditId) return;
 
-		const stillExists = comments.some(
+		const exists = comments.some(
 			(comment) => comment.id === commentToEditId,
 		);
-		if (!stillExists) {
+		if (!exists) {
 			setCommentToEditId(null);
 		}
 	}, [comments, commentToEditId]);
