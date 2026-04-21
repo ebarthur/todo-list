@@ -14,10 +14,16 @@ import { EditCommentInput } from "./edit-comment-input";
 interface TaskCommentProps {
 	taskId: number;
 	comment: Comment;
+	isEditing: boolean;
+	onEditModeChange: (isEditing: boolean) => void;
 }
 
-function TaskComment({ comment, taskId }: TaskCommentProps) {
-	const [isEditing, setIsEditing] = React.useState(false);
+function TaskComment({
+	comment,
+	taskId,
+	isEditing,
+	onEditModeChange,
+}: TaskCommentProps) {
 	const [rawContent, setRawContent] = React.useState("");
 	const [isToggling, setIsToggling] = React.useState(false);
 
@@ -51,7 +57,7 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 			authorId: user.id,
 		});
 
-		setIsEditing(false);
+		onEditModeChange(false);
 	}
 
 	const handleInlineToggle = React.useCallback(
@@ -125,7 +131,7 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 								value={rawContent}
 								onChange={setRawContent}
 								onConfirm={handleEdit}
-								onCancel={() => setIsEditing(false)}
+								onCancel={() => onEditModeChange(false)}
 							/>
 						) : (
 							<Content
@@ -140,7 +146,7 @@ function TaskComment({ comment, taskId }: TaskCommentProps) {
 					{user.id === comment.authorId && !comment.deletedAt && (
 						<CommentMenu
 							onDelete={() => remove.mutate(comment.id)}
-							onEdit={() => setIsEditing(true)}
+							onEdit={() => onEditModeChange(true)}
 						/>
 					)}
 				</div>
