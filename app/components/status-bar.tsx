@@ -29,7 +29,7 @@ export function StatusBar() {
 
 				<div>
 					<a
-						href="https://github.com/blackmann/todo-list"
+						href="https://github.com/ebarthur/todo-list"
 						target="_blank"
 						rel="noopener noreferrer"
 					>

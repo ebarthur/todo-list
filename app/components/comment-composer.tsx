@@ -2,13 +2,14 @@ import React from "react";
 import { useLoaderData } from "react-router";
 import { magicInput } from "~/lib/magic-input";
 import { useComments } from "~/lib/use-comments";
-import type { loader } from "~/routes/_index";
+import type { loader } from "~/routes/$project";
 
 interface Props {
 	taskId: number;
+	onRequestEditLatestComment?: () => void;
 }
 
-export function CommentComposer({ taskId }: Props) {
+export function CommentComposer({ taskId, onRequestEditLatestComment }: Props) {
 	const { user } = useLoaderData<typeof loader>();
 	const { create } = useComments(taskId);
 	const inputRef = React.useRef<HTMLTextAreaElement>(null);
@@ -50,6 +51,19 @@ export function CommentComposer({ taskId }: Props) {
 	}, []);
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (e.key === "ArrowUp") {
+			const textarea = e.currentTarget;
+			const isAtStart =
+				textarea.selectionStart === 0 && textarea.selectionEnd === 0;
+			const isEmpty = textarea.value.trim().length === 0;
+
+			if (isAtStart && isEmpty) {
+				e.preventDefault();
+				onRequestEditLatestComment?.();
+				return;
+			}
+		}
+
 		if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
 			e.preventDefault();
 			e.currentTarget.form?.requestSubmit();

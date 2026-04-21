@@ -227,7 +227,7 @@ export default function Login() {
 
 				<div className="border-t dark:border-neutral-800 bg-stone-200/40 dark:bg-neutral-800/30 px-4 py-2 flex justify-end">
 					<a
-						href="https://github.com/blackmann/todo-list"
+						href="https://github.com/ebarthur/todo-list"
 						className="flex items-center gap-1 bg-stone-200 dark:bg-neutral-800 px-2 py-1 rounded-xl text-secondary font-mono text-sm font-medium"
 						target="_blank"
 						rel="noreferrer"
